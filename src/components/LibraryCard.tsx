@@ -9,15 +9,17 @@ import { LibraryItem } from '../types';
 
 interface LibraryCardProps {
   item: LibraryItem;
+  onClick?: (item: LibraryItem) => void;
 }
 
-export default function LibraryCard({ item }: LibraryCardProps) {
+export default function LibraryCard({ item, onClick }: LibraryCardProps) {
   const isVideo = item.type === 'Video';
 
   return (
     <motion.div
+      onClick={() => onClick && onClick(item)}
       whileHover={{ y: -5, scale: 1.02 }}
-      className="group relative h-full flex flex-col bg-white p-3 rounded-2xl border-2 border-slate-100 shadow-sm transition-all hover:border-blue-200 hover:shadow-lg"
+      className={`group relative h-full flex flex-col bg-white p-3 rounded-2xl border-2 border-slate-100 shadow-sm transition-all hover:border-blue-200 hover:shadow-lg ${onClick ? 'cursor-pointer' : ''}`}
       id={`card-${item.id}`}
     >
       <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-slate-50 mb-3">

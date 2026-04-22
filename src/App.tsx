@@ -3,21 +3,39 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import CategoryFilter from './components/CategoryFilter';
 import LibraryCard from './components/LibraryCard';
-import libraryData from './data/data.json';
+import PdfModal from './components/PdfModal';
+import { fetchDriveData, getPdfUrl } from './services/driveService';
 import { Category, LibraryItem } from './types';
 import { motion, AnimatePresence } from 'motion/react';
-import { Ghost, Library, Trophy, Target, Sparkles, ChevronRight } from 'lucide-react';
+import { Ghost, Library, Trophy, Target, Sparkles, ChevronRight, Loader2 } from 'lucide-react';
 import QuestModal from './components/QuestModal';
 
 export default function App() {
   const [activeCategory, setActiveCategory] = useState<Category>('Semua');
   const [showQuest, setShowQuest] = useState(false);
-  const items = libraryData as LibraryItem[];
+  const [selectedPdf, setSelectedPdf] = useState<{url: string, title: string} | null>(null);
+  const [items, setItems] = useState<LibraryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const driveData = await fetchDriveData();
+        setItems(driveData);
+      } catch (error) {
+        console.error("Error loading items", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadData();
+  }, []);
 
   const filteredItems = useMemo(() => {
     if (activeCategory === 'Semua') return items;
@@ -104,7 +122,21 @@ export default function App() {
         {/* Books Grid */}
         <div className="min-h-[400px]">
           <AnimatePresence mode="popLayout">
-            {filteredItems.length > 0 ? (
+            {loading ? (
+              <motion.div 
+                key="loading"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-3xl border-2 border-slate-100"
+              >
+                <div className="mb-6 rounded-full bg-slate-100 p-8 text-blue-500">
+                  <Loader2 size={64} className="animate-spin" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-800">Memuat Koleksi...</h3>
+                <p className="text-slate-500">Tunggu sebentar ya, sedang mengambil buku dari rak.</p>
+              </motion.div>
+            ) : filteredItems.length > 0 ? (
               <motion.div 
                 layout
                 className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6"
@@ -119,7 +151,18 @@ export default function App() {
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <LibraryCard item={item} />
+                    <LibraryCard 
+                      item={item} 
+                      onClick={(clickedItem) => {
+                        if (clickedItem.type === 'PDF' && clickedItem.driveId) {
+                          setSelectedPdf({
+                            url: getPdfUrl(clickedItem.driveId),
+                            title: clickedItem.title
+                          });
+                        }
+                        // Jika video, bisa ditambahkan logika lain nanti
+                      }}
+                    />
                   </motion.div>
                 ))}
               </motion.div>
@@ -158,6 +201,13 @@ export default function App() {
 
       <AnimatePresence>
         {showQuest && <QuestModal onClose={() => setShowQuest(false)} />}
+        {selectedPdf && (
+          <PdfModal 
+            url={selectedPdf.url} 
+            title={selectedPdf.title} 
+            onClose={() => setSelectedPdf(null)} 
+          />
+        )}
       </AnimatePresence>
     </div>
   );

@@ -3,10 +3,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Users } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import Lottie from 'lottie-react';
 import { motion } from 'motion/react';
 
 export default function Hero() {
+  const [animationData, setAnimationData] = useState<any>(null);
+
+  useEffect(() => {
+    // URL Lottie Animasi Melambai (Anda bisa mengganti URL JSON ini dengan animasi Anak SD dari LottieFiles)
+    fetch('https://assets2.lottiefiles.com/packages/lf20_touohxv0.json')
+      .then(res => res.json())
+      .then(data => setAnimationData(data))
+      .catch(err => console.error("Error loading Lottie animation:", err));
+  }, []);
+
   return (
     <div className="relative h-full min-h-[320px] overflow-hidden bg-blue-600 rounded-3xl flex items-center p-8 md:p-12 shadow-md shadow-blue-100" id="hero-section">
       <div className="z-10 max-w-md">
@@ -38,12 +49,13 @@ export default function Hero() {
         </motion.button>
       </div>
 
-      {/* Lottie Placeholder Animation */}
-      <div className="absolute right-[-40px] bottom-[-40px] md:right-[-20px] md:bottom-[-20px] w-64 h-64 md:w-80 md:h-80 bg-blue-500/30 rounded-full flex items-center justify-center border-4 border-blue-400/20 translate-x-10 translate-y-10">
-        <div className="text-center opacity-40">
-           <Users size={80} color="white" className="mx-auto animate-bounce" />
-           <p className="text-[10px] text-white font-black uppercase tracking-widest mt-2">Lottie: Anak SD Menyapa</p>
-        </div>
+      {/* Lottie Animation */}
+      <div className="absolute right-[-20px] bottom-[-20px] md:right-10 md:bottom-[-40px] w-64 h-64 md:w-96 md:h-96 pointer-events-none z-0">
+        {animationData ? (
+          <Lottie animationData={animationData} loop={true} className="w-full h-full" />
+        ) : (
+          <div className="w-full h-full bg-blue-500/20 rounded-full animate-pulse" />
+        )}
       </div>
     </div>
   );
