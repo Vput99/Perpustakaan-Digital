@@ -1,0 +1,98 @@
+[
+  {
+    "id": "1",
+    "title": "Petualangan Si Kancil",
+    "category": "Buku Cerita",
+    "type": "PDF",
+    "thumbnail": "https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=400&h=533&auto=format&fit=crop",
+    "driveId": "drive_file_id_1"
+  },
+  {
+    "id": "2",
+    "title": "Matematika Menyenangkan Kelas 4",
+    "category": "Buku Pelajaran",
+    "type": "PDF",
+    "thumbnail": "https://images.unsplash.com/photo-1543004273-fa7e1f4094a6?q=80&w=400&h=533&auto=format&fit=crop",
+    "driveId": "drive_file_id_2"
+  },
+  {
+    "id": "3",
+    "title": "Sains di Sekitar Kita",
+    "category": "Video",
+    "type": "Video",
+    "thumbnail": "https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=400&h=225&auto=format&fit=crop",
+    "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+  },
+  {
+    "id": "4",
+    "title": "Cerita Rakyat Nusantara",
+    "category": "Buku Cerita",
+    "type": "PDF",
+    "thumbnail": "https://images.unsplash.com/photo-1516979187457-637abb4f9353?q=80&w=400&h=533&auto=format&fit=crop",
+    "driveId": "drive_file_id_3"
+  },
+  {
+    "id": "5",
+    "title": "Belajar Perkalian Cepat",
+    "category": "Video",
+    "type": "Video",
+    "thumbnail": "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=400&h=225&auto=format&fit=crop",
+    "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+  },
+  {
+    "id": "6",
+    "title": "Bahasa Indonesia Kreatif",
+    "category": "Buku Pelajaran",
+    "type": "PDF",
+    "thumbnail": "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=400&h=533&auto=format&fit=crop",
+    "driveId": "drive_file_id_4"
+  },
+  {
+    "id": "7",
+    "title": "Dunia Dinosaurus",
+    "category": "Buku Cerita",
+    "type": "PDF",
+    "thumbnail": "https://images.unsplash.com/photo-1516245556508-7d60d4ff0f39?q=80&w=400&h=533&auto=format&fit=crop",
+    "driveId": "drive_file_id_5"
+  },
+  {
+    "id": "8",
+    "title": "Eksperimen IPA Seru",
+    "category": "Buku Pelajaran",
+    "type": "PDF",
+    "thumbnail": "https://images.unsplash.com/photo-1530210124550-912dc1381cb8?q=80&w=400&h=533&auto=format&fit=crop",
+    "driveId": "drive_file_id_6"
+  },
+  {
+    "id": "9",
+    "title": "Lagu Nasional Indonesia",
+    "category": "Video",
+    "type": "Video",
+    "thumbnail": "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?q=80&w=400&h=225&auto=format&fit=crop",
+    "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+  },
+  {
+    "id": "10",
+    "title": "Dongeng Sebelum Tidur",
+    "category": "Buku Cerita",
+    "type": "PDF",
+    "thumbnail": "https://images.unsplash.com/photo-1511108690759-009324a90311?q=80&w=400&h=533&auto=format&fit=crop",
+    "driveId": "drive_file_id_7"
+  },
+  {
+    "id": "11",
+    "title": "Tata Surya Kita",
+    "category": "Video",
+    "type": "Video",
+    "thumbnail": "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=400&h=225&auto=format&fit=crop",
+    "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+  },
+  {
+    "id": "12",
+    "title": "Fisika Dasar untuk Anak",
+    "category": "Buku Pelajaran",
+    "type": "PDF",
+    "thumbnail": "https://images.unsplash.com/photo-1507413245164-6160d8298b31?q=80&w=400&h=533&auto=format&fit=crop",
+    "driveId": "drive_file_id_8"
+  }
+]

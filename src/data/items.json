@@ -1,0 +1,50 @@
+[
+  {
+    "id": "1",
+    "title": "Petualangan Si Kancil",
+    "category": "Buku Cerita",
+    "type": "PDF",
+    "thumbnail": "https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=400&h=533&auto=format&fit=crop",
+    "driveId": "drive_file_id_1"
+  },
+  {
+    "id": "2",
+    "title": "Matematika Menyenangkan Kelas 4",
+    "category": "Buku Pelajaran",
+    "type": "PDF",
+    "thumbnail": "https://images.unsplash.com/photo-1543004273-fa7e1f4094a6?q=80&w=400&h=533&auto=format&fit=crop",
+    "driveId": "drive_file_id_2"
+  },
+  {
+    "id": "3",
+    "title": "Sains di Sekitar Kita",
+    "category": "Video",
+    "type": "Video",
+    "thumbnail": "https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=400&h=225&auto=format&fit=crop",
+    "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+  },
+  {
+    "id": "4",
+    "title": "Cerita Rakyat Nusantara",
+    "category": "Buku Cerita",
+    "type": "PDF",
+    "thumbnail": "https://images.unsplash.com/photo-1516979187457-637abb4f9353?q=80&w=400&h=533&auto=format&fit=crop",
+    "driveId": "drive_file_id_3"
+  },
+  {
+    "id": "5",
+    "title": "Belajar Perkalian",
+    "category": "Video",
+    "type": "Video",
+    "thumbnail": "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=400&h=225&auto=format&fit=crop",
+    "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+  },
+  {
+    "id": "6",
+    "title": "Bahasa Indonesia Kreatif",
+    "category": "Buku Pelajaran",
+    "type": "PDF",
+    "thumbnail": "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=400&h=533&auto=format&fit=crop",
+    "driveId": "drive_file_id_4"
+  }
+]

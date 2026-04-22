@@ -1,0 +1,6 @@
+{
+  "name": "Perpustakaan Digital SD",
+  "description": "Learning Hub multimedia ceria untuk siswa Sekolah Dasar dengan akses buku, video, dan materi visual.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["AI Library Search", "Multimedia Filtering"]
+}
