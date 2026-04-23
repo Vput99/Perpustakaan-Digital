@@ -1,13 +1,14 @@
 import React, { useState, useRef, forwardRef } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import HTMLFlipBook from 'react-pageflip';
-import { ChevronLeft, Home, Loader2, ChevronRight } from 'lucide-react';
 import { motion } from 'motion/react';
+import { ChevronLeft, Home, ChevronRight, Loader2 } from 'lucide-react';
+import { useRive } from '@rive-app/react-canvas';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 
 // Konfigurasi worker react-pdf agar kompatibel dengan versi terbaru (v9+)
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
 
 interface PdfModalProps {
   url: string;
@@ -48,6 +49,10 @@ export default function PdfModal({ url, title, onClose }: PdfModalProps) {
   const [numPages, setNumPages] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const flipBook = useRef<any>(null);
+  const { RiveComponent } = useRive({
+    src: '/assets/loading.riv',
+    autoplay: true,
+  });
   
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
@@ -121,11 +126,30 @@ export default function PdfModal({ url, title, onClose }: PdfModalProps) {
           <Document
             file={url}
             onLoadSuccess={onDocumentLoadSuccess}
+            onLoadError={(error) => {
+              console.error("Gagal memuat PDF:", error);
+              setLoading(false);
+            }}
             loading={
               <div className="flex flex-col items-center justify-center text-slate-500 z-10 relative">
-                <Loader2 size={64} className="animate-spin mb-6 text-blue-500" />
+                <div className="w-48 h-48 md:w-64 md:h-64 mb-4">
+                  <RiveComponent className="w-full h-full" />
+                </div>
                 <h3 className="text-2xl font-black text-slate-800 mb-2">Menyiapkan Buku...</h3>
                 <p className="font-bold">Membuka setiap halamannya untukmu!</p>
+              </div>
+            }
+            error={
+              <div className="flex flex-col items-center justify-center text-center p-10">
+                <div className="text-6xl mb-4">⚠️</div>
+                <h3 className="text-xl font-black text-slate-800 mb-2">Ups! Gagal Memuat Buku</h3>
+                <p className="text-slate-500 max-w-xs">Pastikan koneksi internetmu lancar atau coba buka buku yang lain ya!</p>
+                <button 
+                  onClick={onClose}
+                  className="mt-6 bg-blue-600 text-white px-6 py-2 rounded-full font-bold shadow-lg hover:bg-blue-700 transition-colors"
+                >
+                  Kembali ke Perpustakaan
+                </button>
               </div>
             }
             className="flex items-center justify-center w-full h-full max-w-5xl"

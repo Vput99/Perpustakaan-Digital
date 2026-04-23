@@ -24,16 +24,32 @@ export default function CategoryFilter({ activeCategory, onCategoryChange }: Cat
       {categories.map((cat) => (
         <motion.button
           key={cat.name}
+          whileHover={{ scale: 1.05, rotate: 1 }}
           whileTap={{ scale: 0.95 }}
+          animate={activeCategory === cat.name ? { 
+            scale: [1, 1.02, 1],
+            boxShadow: ["0 0 0px rgba(59, 130, 246, 0)", "0 0 20px rgba(59, 130, 246, 0.2)", "0 0 0px rgba(59, 130, 246, 0)"]
+          } : {}}
+          transition={{ duration: 2, repeat: Infinity }}
           onClick={() => onCategoryChange(cat.name)}
-          className={`flex items-center gap-3 p-3 rounded-2xl border-2 font-bold transition-all ${
+          className={`flex items-center gap-3 p-3 rounded-2xl border-2 font-bold transition-all group ${
             activeCategory === cat.name
               ? `${cat.bg} ${cat.color} ${cat.border} ring-2 ring-blue-400 ring-offset-2 shadow-lg`
               : `bg-white text-slate-500 border-slate-100 hover:border-slate-200`
           }`}
           id={`filter-${cat.name.replace(/\s+/g, '-').toLowerCase()}`}
         >
-          <span className="text-xl">{cat.icon}</span>
+          <motion.span 
+            className="text-xl inline-block origin-bottom"
+            animate={activeCategory === cat.name ? { 
+              y: [0, -8, 0],
+              rotate: [0, -10, 10, -10, 0]
+            } : {}}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            whileHover={{ rotate: 360, scale: 1.4 }}
+          >
+            {cat.icon}
+          </motion.span>
           <span className="text-sm">{cat.name}</span>
         </motion.button>
       ))}
