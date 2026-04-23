@@ -3,7 +3,8 @@ import { motion } from 'motion/react';
 
 export default function LoadingScreen() {
   const { rive, RiveComponent } = useRive({
-    src: 'p/assets/loading.riv',
+    src: '/assets/loading.riv',
+    stateMachines: "State Machine 1",
     autoplay: true,
   });
 

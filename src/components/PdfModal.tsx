@@ -51,6 +51,7 @@ export default function PdfModal({ url, title, onClose }: PdfModalProps) {
   const flipBook = useRef<any>(null);
   const { RiveComponent } = useRive({
     src: '/assets/loading.riv',
+    stateMachines: "State Machine 1",
     autoplay: true,
   });
   

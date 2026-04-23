@@ -9,6 +9,7 @@ import Hero from './components/Hero';
 import CategoryFilter from './components/CategoryFilter';
 import LibraryCard from './components/LibraryCard';
 import PdfModal from './components/PdfModal';
+import VideoModal from './components/VideoModal';
 import { fetchDriveData, getPdfUrl } from './services/driveService';
 import { Category, LibraryItem } from './types';
 import { motion, AnimatePresence } from 'motion/react';
@@ -21,6 +22,7 @@ export default function App() {
   const [activeCategory, setActiveCategory] = useState<Category>('Semua');
   const [showQuest, setShowQuest] = useState(false);
   const [selectedPdf, setSelectedPdf] = useState<{url: string, title: string} | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<{driveId: string, youtubeUrl?: string, title: string} | null>(null);
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -273,6 +275,12 @@ export default function App() {
                             url: getPdfUrl(clickedItem.driveId),
                             title: clickedItem.title
                           });
+                        } else if (clickedItem.type === 'Video') {
+                          setSelectedVideo({
+                            driveId: clickedItem.driveId || '',
+                            youtubeUrl: clickedItem.youtubeUrl,
+                            title: clickedItem.title
+                          });
                         }
                       }}
                     />
@@ -334,6 +342,14 @@ export default function App() {
             url={selectedPdf.url} 
             title={selectedPdf.title} 
             onClose={() => setSelectedPdf(null)} 
+          />
+        )}
+        {selectedVideo && (
+          <VideoModal 
+            driveId={selectedVideo.driveId} 
+            youtubeUrl={selectedVideo.youtubeUrl}
+            title={selectedVideo.title} 
+            onClose={() => setSelectedVideo(null)} 
           />
         )}
       </AnimatePresence>
