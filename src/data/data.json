@@ -10,7 +10,7 @@
   {
     "id": "2",
     "title": "Matematika Menyenangkan Kelas 4",
-    "category": "Buku Pelajaran",
+    "category": "Numerasi",
     "type": "PDF",
     "thumbnail": "https://images.unsplash.com/photo-1543004273-fa7e1f4094a6?q=80&w=400&h=533&auto=format&fit=crop",
     "driveId": "drive_file_id_2"
@@ -34,7 +34,7 @@
   {
     "id": "5",
     "title": "Belajar Perkalian Cepat",
-    "category": "Video",
+    "category": "Numerasi",
     "type": "Video",
     "thumbnail": "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=400&h=225&auto=format&fit=crop",
     "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"

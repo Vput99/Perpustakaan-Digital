@@ -44,7 +44,7 @@ export default function Hero() {
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             className="text-blue-200 inline-block mt-2"
           >
-            Ayo Petualang Lewat Buku
+            Ayo Petualang Lewat Buku & Angka
           </motion.span>
         </motion.h2>
         <motion.p 
@@ -53,7 +53,7 @@ export default function Hero() {
           transition={{ delay: 0.5, duration: 1 }}
           className="text-blue-100 text-lg mb-8 font-medium"
         >
-          Temukan ribuan cerita seru dan ilmu pengetahuan menarik di sini.
+          Temukan ribuan cerita seru dan petualangan berhitung di sini.
         </motion.p>
         <motion.button 
           initial={{ opacity: 0, scale: 0.9 }}
@@ -69,7 +69,7 @@ export default function Hero() {
 
       {/* Floating Particles/Shapes for extra "busy" feel */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {[...Array(6)].map((_, i) => (
+        {[...Array(8)].map((_, i) => (
           <motion.div
             key={i}
             initial={{ 
@@ -93,7 +93,7 @@ export default function Hero() {
               top: `${Math.random() * 100}%` 
             }}
           >
-            {['✨', '🎈', '🎨', '🌟', '🍭', '🍕'][i % 6]}
+            {['✨', '🎈', '🔢', '🌟', '➕', '🍕', '➖', '🧮'][i % 8]}
           </motion.div>
         ))}
       </div>

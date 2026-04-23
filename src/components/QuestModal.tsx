@@ -21,12 +21,24 @@ const QUESTIONS = [
   },
   {
     id: 2,
+    question: "Berapakah hasil dari 7 + 5?",
+    options: ["10", "11", "12"],
+    correctAnswer: 2
+  },
+  {
+    id: 3,
     question: "Jika kamu ingin mencari video pembelajaran, kategori mana yang kamu pilih?",
     options: ["Buku Cerita", "Video", "Buku Pelajaran"],
     correctAnswer: 1
   },
   {
-    id: 3,
+    id: 4,
+    question: "Budi punya 3 apel, lalu ia membeli 4 apel lagi. Berapa jumlah apel Budi sekarang?",
+    options: ["7", "6", "8"],
+    correctAnswer: 0
+  },
+  {
+    id: 5,
     question: "Siapakah pahlawan yang paling hebat di sekolah?",
     options: ["Siswa yang rajin belajar", "Siswa yang suka jajan", "Siswa yang tidak mau baca"],
     correctAnswer: 0
@@ -62,7 +74,7 @@ export default function QuestModal({ onClose }: QuestModalProps) {
     }
   };
 
-  const isSuccess = score >= 66; // Min 2 dari 3 benar
+  const isSuccess = score >= 60; // Min 3 dari 5 benar (60%)
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -167,7 +179,7 @@ export default function QuestModal({ onClose }: QuestModalProps) {
             </h2>
             <p className="text-slate-500 mb-8 font-medium">
               Nilai kamu adalah <span className="font-black text-slate-800">{score}</span>. 
-              {isSuccess ? ' Kamu berhak mendapatkan sertifikat pahlawan!' : ' Kamu butuh nilai minimal 66 untuk dapt sertifikat.'}
+              {isSuccess ? ' Kamu berhak mendapatkan sertifikat pahlawan!' : ' Kamu butuh nilai minimal 60 untuk dapt sertifikat.'}
             </p>
 
             <div className="grid gap-3">
