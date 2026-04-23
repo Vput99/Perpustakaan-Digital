@@ -1,4 +1,5 @@
 import { LibraryItem } from '../types';
+import fallbackData from '../data/data.json';
 
 // Ambil API Key dan Folder ID dari environment variables Vite (.env)
 const API_KEY = import.meta.env.VITE_GOOGLE_DRIVE_API_KEY;
@@ -17,8 +18,8 @@ const extractYouTubeId = (url: string) => {
 
 export const fetchDriveData = async (): Promise<LibraryItem[]> => {
   if (!API_KEY || !FOLDER_ID) {
-    console.warn("Google Drive API key or Folder ID is missing. Please set VITE_GOOGLE_DRIVE_API_KEY and VITE_GOOGLE_DRIVE_FOLDER_ID in your .env file.");
-    return [];
+    console.warn("Google Drive API key or Folder ID is missing. Using fallback data.");
+    return fallbackData as LibraryItem[];
   }
 
   try {
@@ -44,6 +45,14 @@ export const fetchDriveData = async (): Promise<LibraryItem[]> => {
         category = 'Video';
         type = 'Video';
       } else if (
+        fileNameLower.includes('matematika') ||
+        fileNameLower.includes('hitung') ||
+        fileNameLower.includes('angka') ||
+        fileNameLower.includes('numerasi') ||
+        fileNameLower.includes('perkalian')
+      ) {
+        category = 'Numerasi';
+      } else if (
         fileNameLower.includes('pelajaran') || 
         fileNameLower.includes('kelas') || 
         fileNameLower.includes('kls') || 
@@ -51,7 +60,6 @@ export const fetchDriveData = async (): Promise<LibraryItem[]> => {
         fileNameLower.includes('siswa') || 
         fileNameLower.includes('guru') || 
         fileNameLower.includes('kurikulum') ||
-        fileNameLower.includes('matematika') ||
         fileNameLower.includes('ipa') ||
         fileNameLower.includes('ips') ||
         fileNameLower.includes('bahasa')
@@ -86,7 +94,7 @@ export const fetchDriveData = async (): Promise<LibraryItem[]> => {
       };
     });
   } catch (error) {
-    console.error("Failed to fetch drive data:", error);
-    return [];
+    console.error("Failed to fetch drive data, using fallback:", error);
+    return fallbackData as LibraryItem[];
   }
 };

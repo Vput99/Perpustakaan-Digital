@@ -102,6 +102,20 @@ export default function App() {
         >
           📚
         </motion.div>
+        <motion.div
+          animate={{ y: [0, -40, 0], x: [0, 40, 0], rotate: [0, 45, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute top-[40%] left-[2%] text-6xl opacity-20 drop-shadow-md font-bold text-blue-500"
+        >
+          123
+        </motion.div>
+        <motion.div
+          animate={{ y: [0, 20, 0], rotate: [0, -45, 0], scale: [1, 1.4, 1] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+          className="absolute top-[60%] right-[2%] text-5xl opacity-20 drop-shadow-md"
+        >
+          🧮
+        </motion.div>
       </div>
 
       <motion.div 

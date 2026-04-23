@@ -15,12 +15,13 @@ export default function CategoryFilter({ activeCategory, onCategoryChange }: Cat
   const categories: { name: Category; icon: string; color: string; bg: string; border: string }[] = [
     { name: 'Semua', icon: '🔍', color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-100' },
     { name: 'Buku Pelajaran', icon: '✏️', color: 'text-green-700', bg: 'bg-green-50', border: 'border-green-100' },
+    { name: 'Numerasi', icon: '🔢', color: 'text-red-700', bg: 'bg-red-50', border: 'border-red-100' },
     { name: 'Buku Cerita', icon: '📚', color: 'text-orange-700', bg: 'bg-orange-50', border: 'border-orange-100' },
     { name: 'Video', icon: '🎬', color: 'text-purple-700', bg: 'bg-purple-50', border: 'border-purple-100' },
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3" id="category-filter">
+    <div className="flex flex-wrap gap-3" id="category-filter">
       {categories.map((cat) => (
         <motion.button
           key={cat.name}
@@ -32,7 +33,7 @@ export default function CategoryFilter({ activeCategory, onCategoryChange }: Cat
           } : {}}
           transition={{ duration: 2, repeat: Infinity }}
           onClick={() => onCategoryChange(cat.name)}
-          className={`flex items-center gap-3 p-3 rounded-2xl border-2 font-bold transition-all group ${
+          className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 p-3 rounded-2xl border-2 font-bold transition-all group ${
             activeCategory === cat.name
               ? `${cat.bg} ${cat.color} ${cat.border} ring-2 ring-blue-400 ring-offset-2 shadow-lg`
               : `bg-white text-slate-500 border-slate-100 hover:border-slate-200`
