@@ -1,4 +1,4 @@
-import { useRive, useStateMachineInput } from '@rive-app/react-canvas';
+import { useRive, useStateMachineInput, Layout, Fit, Alignment } from '@rive-app/react-canvas';
 import { motion } from 'motion/react';
 
 export default function LoadingScreen() {
@@ -6,6 +6,10 @@ export default function LoadingScreen() {
     src: '/assets/loading.riv',
     stateMachines: "State Machine 1",
     autoplay: true,
+    layout: new Layout({
+      fit: Fit.Contain,
+      alignment: Alignment.Center,
+    }),
   });
 
   return (
@@ -14,9 +18,9 @@ export default function LoadingScreen() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50/80 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-transparent"
     >
-      <div className="w-64 h-64 md:w-96 md:h-96">
+      <div className="w-full max-w-2xl aspect-video mix-blend-multiply">
         <RiveComponent className="w-full h-full" />
       </div>
       <motion.div
