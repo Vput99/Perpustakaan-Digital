@@ -48,9 +48,12 @@ export default function VideoModal({ driveId, youtubeUrl, title, onClose }: Vide
         <div className="relative w-full max-w-5xl aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl border-4 border-white/10">
           <iframe 
             src={videoUrl}
+            title={title}
             className="absolute inset-0 w-full h-full"
             allow="autoplay"
             allowFullScreen
+            sandbox="allow-scripts allow-same-origin allow-presentation"
+            referrerPolicy="strict-origin-when-cross-origin"
           ></iframe>
         </div>
       </div>
