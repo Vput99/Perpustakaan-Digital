@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, CheckCircle2, ChevronRight, Award, Trophy } from 'lucide-react';
+import { X, ChevronRight, Award, Trophy } from 'lucide-react';
 import Certificate from './Certificate';
 
 interface QuestModalProps {
