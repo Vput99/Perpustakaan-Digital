@@ -1,12 +1,12 @@
 import { LibraryItem } from '../types';
 import fallbackData from '../data/data.json';
+import { getPdfUrl as getPdfUrlUtil } from './pdfUtils';
 
 // Ambil API Key dan Folder ID dari environment variables Vite (.env)
-const API_KEY = import.meta.env.VITE_GOOGLE_DRIVE_API_KEY;
 const FOLDER_ID = import.meta.env.VITE_GOOGLE_DRIVE_FOLDER_ID;
 
 export const getPdfUrl = (driveId: string) => {
-  return `https://www.googleapis.com/drive/v3/files/${driveId}?alt=media&key=${API_KEY}`;
+  return getPdfUrlUtil(driveId);
 };
 
 // Fungsi pembantu untuk mengambil ID YouTube dari link
@@ -17,6 +17,7 @@ const extractYouTubeId = (url: string) => {
 };
 
 export const fetchDriveData = async (): Promise<LibraryItem[]> => {
+  const API_KEY = import.meta.env.VITE_GOOGLE_DRIVE_API_KEY;
   if (!API_KEY || !FOLDER_ID) {
     console.warn("Google Drive API key or Folder ID is missing. Using fallback data.");
     return fallbackData as LibraryItem[];
