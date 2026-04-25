@@ -3,10 +3,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Search, Library, User } from 'lucide-react';
+import { Search, Library, User, Coins } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useSmartSchool } from '../context/SmartSchoolContext';
+import { useNavigate } from 'react-router-dom';
 
-export default function Navbar() {
+interface NavbarProps {
+  onNavigateKantin?: () => void;
+}
+
+export default function Navbar({ onNavigateKantin }: NavbarProps) {
+  const { profile, loading } = useSmartSchool();
+  const navigate = useNavigate();
+
   return (
     <motion.nav 
       initial={{ y: -100, opacity: 0 }}
@@ -62,6 +71,40 @@ export default function Navbar() {
       </div>
 
       <div className="flex items-center gap-2 md:gap-4">
+        {/* Coin Balance Widget */}
+        {profile && profile.role === 'siswa' && (
+          <motion.button
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            whileHover={{ scale: 1.08, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onNavigateKantin}
+            className="flex items-center gap-2 bg-gradient-to-r from-amber-400 to-yellow-400 px-4 py-2 rounded-full shadow-md shadow-amber-200/50 cursor-pointer border-2 border-amber-300/50 group"
+            title="Saldo Koin"
+            id="coin-balance-widget"
+          >
+            <motion.div
+              animate={{ 
+                rotateY: [0, 360],
+              }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <Coins size={18} className="text-amber-800 drop-shadow-sm" />
+            </motion.div>
+            <motion.span
+              key={profile.coins}
+              initial={{ y: -10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              className="text-sm font-black text-amber-900 tabular-nums"
+            >
+              {profile.coins}
+            </motion.span>
+            <span className="hidden sm:inline text-[10px] font-bold text-amber-700/70 uppercase tracking-wide">
+              Koin
+            </span>
+          </motion.button>
+        )}
+
         <motion.div 
           whileHover={{ scale: 1.02 }}
           className="hidden lg:flex bg-slate-100 px-4 py-2 rounded-full items-center gap-2 ring-1 ring-slate-200 focus-within:ring-blue-400 focus-within:bg-white transition-all shadow-inner relative overflow-hidden"
@@ -107,6 +150,16 @@ export default function Navbar() {
           }}
           transition={{
             y: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+          }}
+          onClick={() => {
+            if (profile) {
+              const role = profile.role;
+              if (role === 'siswa') navigate('/student');
+              else if (role === 'kantin') navigate('/kantin');
+              else if (role === 'admin') navigate('/admin');
+            } else {
+              navigate('/login');
+            }
           }}
           className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 hover:bg-orange-200 transition-colors shadow-md border-2 border-orange-200"
         >

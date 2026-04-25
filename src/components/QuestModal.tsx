@@ -5,8 +5,9 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, ChevronRight, Award, Trophy } from 'lucide-react';
+import { X, ChevronRight, Award, Trophy, Coins } from 'lucide-react';
 import Certificate from './Certificate';
+import { useSmartSchool } from '../context/SmartSchoolContext';
 
 interface QuestModalProps {
   onClose: () => void;
@@ -46,11 +47,13 @@ const QUESTIONS = [
 ];
 
 export default function QuestModal({ onClose }: QuestModalProps) {
+  const { updateStudentCoins, profile } = useSmartSchool();
   const [step, setStep] = useState<'intro' | 'quiz' | 'result' | 'certificate'>('intro');
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
-  const [studentName, setStudentName] = useState('');
+  const [studentName, setStudentName] = useState(profile?.full_name || '');
   const [score, setScore] = useState(0);
+  const [coinsAwarded, setCoinsAwarded] = useState(false);
 
   const startQuiz = () => {
     if (!studentName.trim()) return alert("Tulis namamu dulu ya!");
@@ -70,11 +73,21 @@ export default function QuestModal({ onClose }: QuestModalProps) {
       }, 0);
       const percentageScore = (finalScore / QUESTIONS.length) * 100;
       setScore(percentageScore);
+
+      // Award 10 coins if score >= 80
+      if (percentageScore >= 80 && profile) {
+        updateStudentCoins(profile.id, 10, `Bonus kuis: Tantangan Literasi (Nilai: ${percentageScore})`)
+          .then(success => {
+            if (success) setCoinsAwarded(true);
+          });
+      }
+
       setStep('result');
     }
   };
 
   const isSuccess = score >= 60; // Min 3 dari 5 benar (60%)
+  const isCoinEligible = score >= 80; // Min 80 untuk mendapatkan koin
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -177,10 +190,35 @@ export default function QuestModal({ onClose }: QuestModalProps) {
             <h2 className="text-3xl font-black text-slate-800 mb-4">
               {isSuccess ? 'Luar Biasa, Kamu Berhasil!' : 'Ayo Belajar Lagi!'}
             </h2>
-            <p className="text-slate-500 mb-8 font-medium">
+            <p className="text-slate-500 mb-4 font-medium">
               Nilai kamu adalah <span className="font-black text-slate-800">{score}</span>. 
-              {isSuccess ? ' Kamu berhak mendapatkan sertifikat pahlawan!' : ' Kamu butuh nilai minimal 60 untuk dapt sertifikat.'}
+              {isSuccess ? ' Kamu berhak mendapatkan sertifikat pahlawan!' : ' Kamu butuh nilai minimal 60 untuk dapat sertifikat.'}
             </p>
+
+            {/* Coin Reward Banner */}
+            {coinsAwarded && (
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.3, type: "spring" }}
+                className="mb-6 bg-gradient-to-r from-amber-400 to-yellow-400 rounded-2xl p-4 flex items-center justify-center gap-3 shadow-lg shadow-amber-200/50"
+              >
+                <motion.div
+                  animate={{ rotateY: [0, 360] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <Coins size={24} className="text-amber-800" />
+                </motion.div>
+                <span className="font-black text-amber-900">
+                  +10 Koin Diterima! 🎉
+                </span>
+              </motion.div>
+            )}
+            {isCoinEligible && !coinsAwarded && (
+              <div className="mb-6 bg-slate-100 rounded-2xl p-4 text-center">
+                <p className="text-sm font-bold text-slate-500">Koin sudah pernah diberikan sebelumnya</p>
+              </div>
+            )}
 
             <div className="grid gap-3">
               {isSuccess ? (

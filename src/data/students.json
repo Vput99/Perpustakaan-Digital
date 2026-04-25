@@ -1,0 +1,72 @@
+[
+  {
+    "id": "s1",
+    "name": "Andi Saputra",
+    "absen": "01",
+    "photo_url": "https://api.dicebear.com/9.x/adventurer/svg?seed=Andi",
+    "coins": 35
+  },
+  {
+    "id": "s2",
+    "name": "Budi Santoso",
+    "absen": "02",
+    "photo_url": "https://api.dicebear.com/9.x/adventurer/svg?seed=Budi",
+    "coins": 20
+  },
+  {
+    "id": "s3",
+    "name": "Citra Dewi",
+    "absen": "03",
+    "photo_url": "https://api.dicebear.com/9.x/adventurer/svg?seed=Citra",
+    "coins": 50
+  },
+  {
+    "id": "s4",
+    "name": "Dian Permata",
+    "absen": "04",
+    "photo_url": "https://api.dicebear.com/9.x/adventurer/svg?seed=Dian",
+    "coins": 15
+  },
+  {
+    "id": "s5",
+    "name": "Eka Pratama",
+    "absen": "05",
+    "photo_url": "https://api.dicebear.com/9.x/adventurer/svg?seed=Eka",
+    "coins": 40
+  },
+  {
+    "id": "s6",
+    "name": "Fajar Nugroho",
+    "absen": "06",
+    "photo_url": "https://api.dicebear.com/9.x/adventurer/svg?seed=Fajar",
+    "coins": 10
+  },
+  {
+    "id": "s7",
+    "name": "Gita Rahayu",
+    "absen": "07",
+    "photo_url": "https://api.dicebear.com/9.x/adventurer/svg?seed=Gita",
+    "coins": 25
+  },
+  {
+    "id": "s8",
+    "name": "Hani Fitriani",
+    "absen": "08",
+    "photo_url": "https://api.dicebear.com/9.x/adventurer/svg?seed=Hani",
+    "coins": 5
+  },
+  {
+    "id": "s9",
+    "name": "Irfan Maulana",
+    "absen": "09",
+    "photo_url": "https://api.dicebear.com/9.x/adventurer/svg?seed=Irfan",
+    "coins": 30
+  },
+  {
+    "id": "s10",
+    "name": "Jasmine Putri",
+    "absen": "10",
+    "photo_url": "https://api.dicebear.com/9.x/adventurer/svg?seed=Jasmine",
+    "coins": 45
+  }
+]

@@ -9,3 +9,20 @@ export interface LibraryItem {
 }
 
 export type Category = 'Semua' | 'Buku Pelajaran' | 'Buku Cerita' | 'Video' | 'Numerasi';
+
+// Smart School types
+export interface Student {
+  id: string;
+  name: string;
+  absen: string;
+  photo_url: string;
+  coins: number;
+}
+
+export interface TransactionLog {
+  id: string;
+  student_id: string;
+  amount: number;
+  description: string;
+  timestamp: string;
+}
