@@ -5,7 +5,7 @@ import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: ('siswa' | 'kantin' | 'admin')[];
+  allowedRoles?: ('siswa' | 'kantin' | 'admin' | 'guru')[];
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
@@ -65,7 +65,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
 
   if (allowedRoles && userRole && !allowedRoles.includes(userRole as any)) {
     // Redirect to their default dashboard if role doesn't match
-    const redirectPath = userRole === 'siswa' ? '/student' : userRole === 'kantin' ? '/kantin' : '/admin';
+    const redirectPath = userRole === 'siswa' ? '/student' : (userRole === 'kantin' ? '/kantin' : '/admin');
+    if (location.pathname === redirectPath) return <Navigate to="/" replace />;
     return <Navigate to={redirectPath} replace />;
   }
 

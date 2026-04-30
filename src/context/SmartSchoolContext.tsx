@@ -8,6 +8,7 @@ interface SmartSchoolState {
   transactionLogs: TransactionLog[];
   loading: boolean;
   refreshData: () => Promise<void>;
+  searchStudents: (query: string) => Student[];
   updateStudentCoins: (studentId: string, amount: number, description?: string) => Promise<boolean>;
 }
 
@@ -92,6 +93,14 @@ export function SmartSchoolProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, [fetchData]);
 
+  const searchStudents = useCallback((query: string) => {
+    const q = query.toLowerCase();
+    return students.filter(s => 
+      s.name.toLowerCase().includes(q) || 
+      s.absen.toString().includes(q)
+    );
+  }, [students]);
+
   const updateStudentCoins = async (studentId: string, amount: number, description?: string): Promise<boolean> => {
     try {
       // 1. Get current balance
@@ -138,6 +147,7 @@ export function SmartSchoolProvider({ children }: { children: ReactNode }) {
       transactionLogs,
       loading,
       refreshData: fetchData,
+      searchStudents,
       updateStudentCoins,
     }}>
       {children}

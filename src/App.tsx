@@ -4,7 +4,7 @@ import Login from './pages/Login';
 import LibraryPage from './pages/Library';
 import StudentDashboard from './pages/student/Dashboard';
 import KantinDashboard from './pages/kantin/Dashboard';
-import AdminDashboard from './pages/admin/Dashboard';
+import AdminView from './pages/AdminView';
 import ProtectedRoute from './components/ProtectedRoute';
 
 export default function App() {
@@ -39,8 +39,8 @@ export default function App() {
         <Route 
           path="/admin" 
           element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <AdminDashboard />
+            <ProtectedRoute allowedRoles={['admin', 'guru']}>
+              <AdminView />
             </ProtectedRoute>
           } 
         />
