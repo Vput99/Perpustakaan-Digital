@@ -1,16 +1,22 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { auth, db } from '../lib/firebase';
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword 
+} from 'firebase/auth';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'motion/react';
 import { LogIn, User, Lock, Loader2, UserPlus, BookOpen, GraduationCap } from 'lucide-react';
 
 const Login: React.FC = () => {
   const [isRegister, setIsRegister] = useState(false);
-  const [role, setRole] = useState<'siswa' | 'guru' | 'umum'>('siswa');
+  const [role, setRole] = useState<'siswa' | 'guru' | 'umum' | 'admin'>('siswa');
   const [nisn, setNisn] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [grade, setGrade] = useState('');
+  const [subject, setSubject] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -21,60 +27,65 @@ const Login: React.FC = () => {
     setError(null);
 
     try {
-      const email = `${nisn}@sekolah.id`;
+      const email = nisn.includes('@') ? nisn : `${nisn}@smartlibrary.id`;
+      console.log("Attempting auth for:", email);
 
       if (isRegister) {
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        console.log("Creating user...");
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
           email,
-          password,
-        });
+          password
+        );
+        console.log("User created:", userCredential.user.uid);
 
-        if (signUpError) throw signUpError;
-
-        if (signUpData.user) {
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .insert({
-              id: signUpData.user.id,
-              full_name: fullName,
-              nisn: nisn,
-              class: (role === 'siswa' || role === 'guru') ? grade : null,
-              role: role,
-              coins: 0
-            });
-
-          if (profileError) throw profileError;
+        if (userCredential.user) {
+          console.log("Saving profile to Firestore...");
+          await setDoc(doc(db, 'users', userCredential.user.uid), {
+            full_name: fullName,
+            nisn: nisn,
+            class: (role === 'siswa' || role === 'guru') ? grade : null,
+            subject: role === 'guru' ? subject : null,
+            role: role,
+            coins: 0
+          });
+          console.log("Profile saved.");
           
           alert('Pendaftaran berhasil! Silakan masuk.');
           setIsRegister(false);
         }
       } else {
-        const { data: loginData, error: authError } = await supabase.auth.signInWithPassword({
+        console.log("Signing in...");
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
           email,
-          password,
-        });
+          password
+        );
+        console.log("Signed in:", userCredential.user.uid);
 
-        if (authError) throw authError;
+        if (userCredential.user) {
+          console.log("Fetching profile...");
+          const profileSnap = await getDoc(doc(db, 'users', userCredential.user.uid));
 
-        if (loginData.user) {
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', loginData.user.id)
-            .single();
-
-          if (profileError) throw profileError;
-
-          const userRole = profile.role;
-          if (userRole === 'siswa') navigate('/student');
-          else if (userRole === 'kantin') navigate('/kantin');
-          else if (userRole === 'admin' || userRole === 'guru') navigate('/admin');
-          else navigate('/');
+          if (profileSnap.exists()) {
+            const profileData = profileSnap.data();
+            const userRole = profileData.role;
+            console.log("User role:", userRole);
+            if (userRole === 'siswa') navigate('/student');
+            else if (userRole === 'kantin') navigate('/kantin');
+            else if (userRole === 'admin' || userRole === 'guru') navigate('/admin');
+            else navigate('/');
+          } else {
+            console.log("Profile not found.");
+            setError('Profil tidak ditemukan.');
+          }
         }
       }
     } catch (err: any) {
+      console.error("Auth Error:", err);
       setError(err.message || 'Terjadi kesalahan. Silakan coba lagi.');
     } finally {
+      console.log("Auth process finished.");
       setLoading(false);
     }
   };
@@ -124,11 +135,12 @@ const Login: React.FC = () => {
 
         {isRegister && (
           <div className="flex bg-slate-100 p-1 rounded-2xl mb-6">
-            {(['siswa', 'guru', 'umum'] as const).map((r) => (
+            {(['siswa', 'guru', 'umum', 'admin'] as const).map((r) => (
               <button
                 key={r}
+                type="button"
                 onClick={() => setRole(r)}
-                className={`flex-1 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all ${
+                className={`flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all ${
                   role === r ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400'
                 }`}
               >
@@ -193,6 +205,32 @@ const Login: React.FC = () => {
                     />
                   </div>
                 </div>
+
+                {role === 'guru' && (
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="space-y-2"
+                  >
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Mata Pelajaran</label>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                        <BookOpen size={18} />
+                      </div>
+                      <select 
+                        value={subject}
+                        onChange={(e) => setSubject(e.target.value)}
+                        className="w-full pl-11 pr-4 py-3.5 bg-white/50 border-2 border-slate-100 rounded-2xl focus:outline-none focus:border-blue-400 focus:bg-white transition-all font-bold text-slate-700 appearance-none"
+                        required
+                      >
+                        <option value="">Pilih Mapel</option>
+                        <option value="Agama">Agama</option>
+                        <option value="Bahasa Inggris">Bahasa Inggris</option>
+                        <option value="Guru Kelas">Guru Kelas</option>
+                      </select>
+                    </div>
+                  </motion.div>
+                )}
 
                 {(role === 'siswa' || role === 'guru') && (
                   <motion.div

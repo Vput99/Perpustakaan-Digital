@@ -25,32 +25,19 @@ export default function CategoryFilter({ activeCategory, onCategoryChange }: Cat
       {categories.map((cat) => (
         <motion.button
           key={cat.name}
-          whileHover={{ scale: 1.05, rotate: 1 }}
+          whileHover={{ scale: 1.05, y: -2 }}
           whileTap={{ scale: 0.95 }}
-          animate={activeCategory === cat.name ? { 
-            scale: [1, 1.02, 1],
-            boxShadow: ["0 0 0px rgba(59, 130, 246, 0)", "0 0 20px rgba(59, 130, 246, 0.2)", "0 0 0px rgba(59, 130, 246, 0)"]
-          } : {}}
-          transition={{ duration: 2, repeat: Infinity }}
           onClick={() => onCategoryChange(cat.name)}
-          className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 p-3 rounded-2xl border-2 font-bold transition-all group ${
+          className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 p-3 rounded-2xl border font-black transition-all group ${
             activeCategory === cat.name
-              ? `${cat.bg} ${cat.color} ${cat.border} ring-2 ring-blue-400 ring-offset-2 shadow-lg`
-              : `bg-white text-slate-500 border-slate-100 hover:border-slate-200`
+              ? `bg-white/20 text-white border-white/40 shadow-xl`
+              : `bg-white/5 text-slate-400 border-white/5 hover:bg-white/10 hover:text-white hover:border-white/20`
           }`}
           id={`filter-${cat.name.replace(/\s+/g, '-').toLowerCase()}`}
         >
-          <motion.span 
-            className="text-xl inline-block origin-bottom"
-            animate={activeCategory === cat.name ? { 
-              y: [0, -8, 0],
-              rotate: [0, -10, 10, -10, 0]
-            } : {}}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            whileHover={{ rotate: 360, scale: 1.4 }}
-          >
+          <span className="text-xl inline-block group-hover:scale-110 transition-transform">
             {cat.icon}
-          </motion.span>
+          </span>
           <span className="text-sm">{cat.name}</span>
         </motion.button>
       ))}

@@ -1,11 +1,22 @@
-import { Users, ShieldAlert, ListChecks, CheckCircle2, ShoppingBag, BookOpen, Clock, X, ChevronRight, Loader2, Plus, LogOut } from 'lucide-react';
+import { Users, ShieldAlert, ListChecks, CheckCircle2, ShoppingBag, BookOpen, Clock, X, ChevronRight, Loader2, Plus, LogOut, Send, PenTool, SendHorizonal, Paperclip, Settings } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import KantinAdmin from '../components/KantinAdmin';
 import MissionCreator from './admin/MissionCreator';
 import { useSmartSchool } from '../context/SmartSchoolContext';
-import { supabase } from '../lib/supabase';
+import { auth, db } from '../lib/firebase';
+import { signOut } from 'firebase/auth';
+import { 
+  collection, 
+  addDoc, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, 
+  serverTimestamp,
+  Timestamp 
+} from 'firebase/firestore';
 
 export default function AdminView() {
   const { students: contextStudents, profile, loading } = useSmartSchool();
@@ -19,16 +30,12 @@ export default function AdminView() {
 
   const handleAssignMission = async (title: string, reward: number, icon: string) => {
     try {
-      const { error } = await supabase
-        .from('quests')
-        .insert({
-          title,
-          reward,
-          icon,
-          created_at: new Date().toISOString()
-        });
-
-      if (error) throw error;
+      await addDoc(collection(db, 'quests'), {
+        title,
+        reward,
+        icon,
+        created_at: serverTimestamp()
+      });
 
       setShowToast({ message: `Misi "${title}" berhasil ditugaskan!`, type: 'success' });
       setTimeout(() => setShowToast(null), 3000);
@@ -42,21 +49,34 @@ export default function AdminView() {
     if (selectedStudent) {
       const fetchHistory = async () => {
         setLoadingHistory(true);
-        const { data } = await supabase
-          .from('borrow_history')
-          .select('*')
-          .eq('student_id', selectedStudent.id)
-          .order('created_at', { ascending: false });
-        
-        setReadingHistory(data || []);
-        setLoadingHistory(false);
+        try {
+          const q = query(
+            collection(db, 'borrow_history'),
+            where('student_id', '==', selectedStudent.id),
+            orderBy('created_at', 'desc')
+          );
+          const querySnapshot = await getDocs(q);
+          const history = querySnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              ...data,
+              created_at: data.created_at instanceof Timestamp ? data.created_at.toDate().toISOString() : data.created_at
+            };
+          });
+          setReadingHistory(history);
+        } catch (error) {
+          console.error("Error fetching history:", error);
+        } finally {
+          setLoadingHistory(false);
+        }
       };
       fetchHistory();
     }
   }, [selectedStudent]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await signOut(auth);
     navigate('/login');
   };
 
@@ -85,7 +105,49 @@ export default function AdminView() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6 md:p-8 relative">
+    <div 
+      className="min-h-screen p-6 md:p-12 relative overflow-hidden font-nunito bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: 'url("/Background Guru.png")' }}
+    >
+      {/* 3D Background Elements - Overlay to enhance the image */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        {/* Subtle Darkening Overlay if needed */}
+        <div className="absolute inset-0 bg-white/10" />
+
+        {/* 3D Assets Mockup (Floating Icons) */}
+        <motion.div 
+          animate={{ y: [0, -20, 0], rotate: [0, 10, 0] }}
+          transition={{ duration: 6, repeat: Infinity }}
+          className="absolute top-[15%] left-[8%] text-[#6366f1]/20"
+        >
+          <PenTool size={120} style={{ transform: 'perspective(500px) rotateY(-20deg)' }} />
+        </motion.div>
+
+        <motion.div 
+          animate={{ y: [0, 30, 0], rotate: [0, -15, 0] }}
+          transition={{ duration: 8, repeat: Infinity }}
+          className="absolute bottom-[20%] right-[10%] text-[#f59e0b]/20"
+        >
+          <Settings size={140} style={{ transform: 'perspective(500px) rotateX(20deg)' }} />
+        </motion.div>
+
+        <motion.div 
+          animate={{ x: [0, 40, 0], y: [0, -20, 0], rotate: [-10, 10, -10] }}
+          transition={{ duration: 7, repeat: Infinity }}
+          className="absolute top-[60%] left-[12%] text-slate-400/20"
+        >
+          <Paperclip size={80} />
+        </motion.div>
+
+        <motion.div 
+          animate={{ y: [0, -50, 0], x: [0, 30, 0] }}
+          transition={{ duration: 10, repeat: Infinity }}
+          className="absolute top-[10%] right-[15%] text-slate-300/30"
+        >
+          <SendHorizonal size={100} />
+        </motion.div>
+      </div>
+
       {/* Toast Notification */}
       <AnimatePresence>
         {showToast && (
@@ -99,211 +161,272 @@ export default function AdminView() {
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-3xl p-6 shadow-sm border-2 border-slate-100 flex items-center justify-between"
-        >
-          <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-xl bg-red-100 text-red-600 flex items-center justify-center">
-              <ShieldAlert size={24} />
-            </div>
-            <div>
-              <h1 className="text-2xl font-black text-slate-800">
-                {teacherClass ? `Dashboard Guru Kelas ${teacherClass}` : 'Dashboard Admin'}
-              </h1>
-              <p className="text-sm font-medium text-slate-500">
-                {teacherClass ? `Mengelola siswa Kelas ${teacherClass}` : 'Pantau semua siswa dan berikan misi'}
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-4">
-            <button 
-              onClick={() => setView('create_mission')}
-              className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black transition-all shadow-lg shadow-indigo-100"
-            >
-              <Plus size={20} />
-              Buat Misi Baru
-            </button>
-            <button 
-              onClick={() => setView('kantin')}
-              className="flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-black transition-all shadow-lg shadow-orange-100"
-            >
-              <ShoppingBag size={20} />
-              Buka Kantin Sehat
-            </button>
-            <button 
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-6 py-3 bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600 rounded-2xl font-black transition-all border-2 border-slate-100 hover:border-rose-100"
-            >
-              <LogOut size={20} />
-              Keluar
-            </button>
-          </div>
-        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column: Students List */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="lg:col-span-2 space-y-4"
-          >
-            <div className="bg-white rounded-3xl p-6 shadow-sm border-2 border-slate-100">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <Users className="text-blue-600" /> Data Siswa {teacherClass ? `Kelas ${teacherClass}` : 'Login'}
+      <div className="max-w-7xl mx-auto relative z-10">
+        {/* Main Glass Panel with 3D Depth */}
+        <div className="bg-white/40 backdrop-blur-3xl rounded-[3rem] border border-white/50 shadow-[0_40px_100px_-12px_rgba(0,0,0,0.15)] overflow-hidden p-8 md:p-10 space-y-8">
+          
+          {/* Header Row - 3D Container */}
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-6 bg-white/70 p-6 rounded-[2.5rem] shadow-[0_15px_30px_-5px_rgba(0,0,0,0.05)] border border-white/80">
+            <div className="flex items-center gap-5">
+              <div className="h-16 w-16 rounded-[1.5rem] bg-[#FCE8E8] text-[#E15A5A] flex items-center justify-center shadow-[0_8px_0_0_#E15A5A20,0_15px_30px_-5px_#E15A5A30] border-b-4 border-[#E15A5A10]">
+                <ShieldAlert size={32} />
+              </div>
+              <div>
+                <h1 className="text-3xl font-black text-[#2D3748] tracking-tight">
+                  {teacherClass ? `Dashboard Guru Kelas ${teacherClass}` : 'Dashboard Admin'}
+                </h1>
+                <p className="text-sm font-bold text-[#718096]">
+                  {teacherClass ? `Mengelola siswa Kelas ${teacherClass}` : 'Pantau semua siswa dan berikan misi'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-5">
+              {/* 3D Purple Button */}
+              <motion.button 
+                whileHover={{ y: -2 }}
+                whileTap={{ y: 8, boxShadow: 'none' }}
+                onClick={() => setView('create_mission')}
+                className="flex items-center gap-3 px-8 py-4 bg-[#5436D6] text-white rounded-[1.5rem] font-black transition-all shadow-[0_10px_0_0_#3B22A8,0_20px_30px_-10px_rgba(84,54,214,0.4)] border-b-2 border-[#FFFFFF20]"
+              >
+                <Plus size={22} />
+                Buat Misi Baru
+              </motion.button>
+
+              {/* 3D Orange Button */}
+              <motion.button 
+                whileHover={{ y: -2 }}
+                whileTap={{ y: 8, boxShadow: 'none' }}
+                onClick={() => setView('kantin')}
+                className="flex items-center gap-3 px-8 py-4 bg-[#E8833A] text-white rounded-[1.5rem] font-black transition-all shadow-[0_10px_0_0_#B86228,0_20px_30px_-10px_rgba(232,131,58,0.4)] border-b-2 border-[#FFFFFF20]"
+              >
+                <ShoppingBag size={22} />
+                Buka Kantin Sehat
+              </motion.button>
+
+              {/* 3D Logout Button */}
+              <motion.button 
+                whileHover={{ y: -2 }}
+                whileTap={{ y: 6, boxShadow: 'none' }}
+                onClick={handleLogout}
+                className="flex items-center gap-3 px-8 py-4 bg-white text-[#4A5568] rounded-[1.5rem] font-black transition-all border border-[#E2E8F0] shadow-[0_8px_0_0_#EDF2F7,0_15px_20px_-5px_rgba(0,0,0,0.05)]"
+              >
+                <LogOut size={22} />
+                Keluar
+              </motion.button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Left Section: Student Data Panel - 3D Look */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="lg:col-span-8 bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] flex flex-col min-h-[500px]"
+            >
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-black text-[#2D3748] flex items-center gap-3">
+                  <Users className="text-[#4299E1]" size={28} /> Data Siswa {teacherClass ? `Kelas ${teacherClass}` : ''}
                 </h2>
                 {!teacherClass && (
-                  <div className="flex gap-2">
+                  <div className="flex bg-[#EDF2F7] p-1.5 rounded-full shadow-inner">
                     <button
                       onClick={() => setSelectedClass(null)}
-                      className={`px-3 py-1 rounded-full text-xs font-bold transition-colors ${!selectedClass ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'}`}
+                      className={`px-4 py-2 rounded-full text-xs font-black transition-all ${!selectedClass ? 'bg-white text-[#3182CE] shadow-md' : 'text-[#A0AEC0]'}`}
                     >
-                      Semua
+                      SEMUA
                     </button>
                     {[1, 2, 3, 4, 5, 6].map(c => (
                       <button
                         key={c}
                         onClick={() => setSelectedClass(c)}
-                        className={`px-3 py-1 rounded-full text-xs font-bold transition-colors ${selectedClass === c ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'}`}
+                        className={`px-4 py-2 rounded-full text-xs font-black transition-all ${selectedClass === c ? 'bg-white text-[#3182CE] shadow-md' : 'text-[#A0AEC0]'}`}
                       >
-                        Kls {c}
+                        KLS {c}
                       </button>
                     ))}
                   </div>
                 )}
               </div>
 
-              <div className="space-y-3">
-                {filteredStudents.map(student => (
-                  <motion.div 
-                    layout
-                    key={student.id} 
-                    onClick={() => setSelectedStudent(student)}
-                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${selectedStudent?.id === student.id ? 'bg-blue-50 border-blue-200 shadow-md' : 'bg-slate-50 border-slate-100 hover:bg-white hover:shadow-sm'}`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <img 
-                        src={student.photo_url} 
-                        alt="avatar" 
-                        className="w-10 h-10 rounded-full bg-white border border-slate-200" 
-                      />
-                      <div>
-                        <h3 className="font-bold text-slate-800">{student.name}</h3>
-                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Kelas {student.class || student.kelas}</p>
-                      </div>
+              <div className="flex-1 overflow-y-auto pr-2 space-y-4">
+                {filteredStudents.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-5">
+                    {filteredStudents.map(student => (
+                      <motion.div 
+                        layout
+                        key={student.id} 
+                        onClick={() => setSelectedStudent(student)}
+                        whileHover={{ scale: 1.01, x: 8 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={`flex items-center justify-between p-5 rounded-[2rem] border transition-all cursor-pointer ${selectedStudent?.id === student.id ? 'bg-[#EBF8FF] border-[#BEE3F8] shadow-[0_12px_0_0_#BEE3F8,0_20px_30px_-10px_rgba(66,153,225,0.2)] -translate-y-1' : 'bg-white border-white/80 hover:bg-white hover:shadow-[0_15px_30px_-10px_rgba(0,0,0,0.1)] hover:-translate-y-1'}`}
+                      >
+                        <div className="flex items-center gap-5">
+                          <div className="relative">
+                            <img 
+                              src={student.photo_url || `https://api.dicebear.com/7.x/adventurer/svg?seed=${student.full_name}`} 
+                              alt="avatar" 
+                              className="w-16 h-16 rounded-[1.2rem] bg-white border-2 border-white shadow-md" 
+                            />
+                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#48BB78] border-4 border-[#EBF8FF] rounded-full" />
+                          </div>
+                          <div>
+                            <h3 className="font-black text-[#2D3748] text-xl leading-tight">{student.full_name || student.name}</h3>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="px-3 py-1 bg-[#EDF2F7] rounded-lg text-[10px] font-black text-[#718096] uppercase tracking-widest">NISN: {student.nisn || student.id.slice(0, 8)}</span>
+                              <span className="text-[10px] font-black text-[#48BB78] uppercase tracking-widest">AKTIF</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right flex items-center gap-4">
+                          <div className="px-5 py-2.5 bg-white rounded-2xl shadow-sm border border-slate-50">
+                            <div className="flex items-center gap-1.5 text-[#D69E2E] font-black">
+                              <span className="text-2xl tracking-tighter">{student.coins || 0}</span>
+                              <span className="text-xs">KOIN</span>
+                            </div>
+                          </div>
+                          <ChevronRight size={24} className="text-[#CBD5E0]" />
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full text-[#A0AEC0] space-y-4 py-20">
+                    <div className="w-24 h-24 bg-white/50 rounded-full flex items-center justify-center shadow-inner border border-white">
+                      <Users size={48} className="opacity-40" />
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex flex-col items-end">
-                        <span className="text-[10px] font-black text-amber-600">{student.coins} KOIN</span>
-                        <span className="text-[10px] font-bold text-slate-400">Online</span>
-                      </div>
-                      <ChevronRight size={16} className="text-slate-300" />
-                    </div>
-                  </motion.div>
-                ))}
-                {filteredStudents.length === 0 && (
-                  <div className="py-12 text-center">
-                    <p className="text-slate-400 font-bold">Tidak ada siswa ditemukan.</p>
+                    <p className="text-xl font-black opacity-40 italic">Tidak ada siswa ditemukan.</p>
                   </div>
                 )}
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
 
-          {/* Right Column: Quests & History */}
-          <div className="space-y-6">
-            <AnimatePresence mode="wait">
-              {selectedStudent ? (
-                <motion.div
-                  key="history"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  className="bg-white rounded-3xl p-6 shadow-sm border-2 border-slate-100"
-                >
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold flex items-center gap-2">
-                      <BookOpen className="text-emerald-600" /> Riwayat Baca
-                    </h2>
-                    <button onClick={() => setSelectedStudent(null)} className="p-1 hover:bg-slate-100 rounded-lg">
-                      <X size={18} className="text-slate-400" />
-                    </button>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Siswa Terpilih</p>
-                      <p className="font-black text-slate-800">{selectedStudent.name}</p>
+            {/* Right Section: Action Panel - 3D Look */}
+            <div className="lg:col-span-4 flex flex-col gap-6">
+              <AnimatePresence mode="wait">
+                {selectedStudent ? (
+                  <motion.div
+                    key="history"
+                    initial={{ opacity: 0, x: 30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 30 }}
+                    className="bg-[#EDFDFD]/90 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white shadow-[0_25px_50px_-12px_rgba(0,0,0,0.1)] flex-1 flex flex-col"
+                  >
+                    <div className="flex items-center justify-between mb-8">
+                      <h2 className="text-2xl font-black text-[#234E52] flex items-center gap-3">
+                        <BookOpen className="text-[#319795]" size={28} /> Riwayat
+                      </h2>
+                      <motion.button 
+                        whileHover={{ scale: 1.1, rotate: 90 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => setSelectedStudent(null)} 
+                        className="p-2.5 bg-white rounded-xl text-[#319795] shadow-md border border-[#B2F5EA] transition-all"
+                      >
+                        <X size={20} />
+                      </motion.button>
                     </div>
 
-                    <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+                    <div className="bg-white/80 p-5 rounded-[1.8rem] border border-[#B2F5EA] mb-6 shadow-md -translate-y-1">
+                      <p className="text-[10px] font-black text-[#319795] uppercase tracking-widest mb-1">DATA SISWA</p>
+                      <p className="text-2xl font-black text-[#234E52] leading-tight">{selectedStudent.full_name || selectedStudent.name}</p>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto pr-2 space-y-4">
                       {loadingHistory ? (
-                        <div className="py-8 text-center"><Loader2 className="animate-spin mx-auto text-slate-300" /></div>
+                        <div className="py-20 text-center">
+                          <Loader2 className="animate-spin mx-auto text-[#319795] opacity-50" size={40} />
+                        </div>
                       ) : readingHistory.length > 0 ? (
                         readingHistory.map((h, i) => (
-                          <div key={i} className="p-4 bg-white border border-slate-100 rounded-2xl flex items-center gap-3">
-                            <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
-                              <BookOpen size={18} />
+                          <motion.div 
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: i * 0.05 }}
+                            key={i} 
+                            className="p-5 bg-white border border-white rounded-[1.5rem] flex items-center gap-5 shadow-[0_4px_0_0_#E6FFFA,0_8px_15px_-5px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_0_0_#E6FFFA,0_12px_20px_-5px_rgba(0,0,0,0.08)] transition-all group"
+                          >
+                            <div className="w-12 h-12 bg-[#E6FFFA] text-[#319795] rounded-2xl flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform">
+                              <BookOpen size={22} />
                             </div>
                             <div className="min-w-0">
-                              <p className="font-bold text-slate-800 text-sm truncate">{h.book_title}</p>
-                              <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold">
-                                <Clock size={10} /> {new Date(h.created_at).toLocaleDateString()}
+                              <p className="font-black text-[#234E52] text-base truncate leading-tight">{h.book_title}</p>
+                              <div className="flex items-center gap-2 text-[10px] text-[#4FD1C5] font-black mt-1.5 uppercase">
+                                <Clock size={12} /> {new Date(h.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
                               </div>
                             </div>
-                          </div>
+                          </motion.div>
                         ))
                       ) : (
-                        <p className="text-center py-8 text-slate-400 text-sm font-medium">Belum ada riwayat membaca.</p>
+                        <div className="flex flex-col items-center justify-center h-full opacity-30 text-[#319795] space-y-3 py-10">
+                          <BookOpen size={60} />
+                          <p className="text-lg font-black italic">Belum ada riwayat.</p>
+                        </div>
                       )}
                     </div>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="quests"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  className="bg-white rounded-3xl p-6 shadow-sm border-2 border-slate-100"
-                >
-                  <h2 className="text-xl font-bold flex items-center gap-2 mb-6">
-                    <ListChecks className="text-indigo-600" /> Berikan Misi
-                  </h2>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="missions"
+                    initial={{ opacity: 0, x: 30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 30 }}
+                    className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white shadow-[0_25px_50px_-12px_rgba(0,0,0,0.1)] flex-1 flex flex-col"
+                  >
+                    <h2 className="text-2xl font-black text-[#2D3748] flex items-center gap-3 mb-8">
+                      <ListChecks className="text-[#5436D6]" size={28} /> Berikan Misi
+                    </h2>
 
-                  <div className="space-y-4">
-                    <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-100">
-                      <h3 className="font-bold text-indigo-900 mb-1">Misi Membaca (Kelas 1-3)</h3>
-                      <p className="text-xs text-indigo-700 mb-3">Baca 2 buku cerita nusantara</p>
-                      <button 
-                        onClick={() => handleAssignMission('Misi Membaca Nusantara', 25, '📚')}
-                        className="w-full py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+                    <div className="space-y-6">
+                      {/* Mission Card 1 - 3D Look */}
+                      <motion.div 
+                        whileHover={{ y: -8 }}
+                        className="p-7 rounded-[2.2rem] bg-[#F5F3FF] border-2 border-white shadow-[0_12px_0_0_#DDD6FE,0_25px_30px_-10px_rgba(84,54,214,0.15)] relative overflow-hidden group"
                       >
-                        <CheckCircle2 size={16} /> Tugaskan
-                      </button>
-                    </div>
+                        <div className="relative z-10">
+                          <h3 className="font-black text-[#4338CA] text-xl mb-1">Misi Membaca</h3>
+                          <p className="text-sm font-bold text-[#6366F1] opacity-80 mb-6">Baca 2 buku cerita nusantara</p>
+                          <motion.button 
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ y: 8, boxShadow: 'none' }}
+                            onClick={() => handleAssignMission('Misi Membaca Nusantara', 25, '📚')}
+                            className="w-full py-4 bg-[#5436D6] text-white rounded-[1.2rem] font-black shadow-[0_8px_0_0_#3B22A8,0_15px_20px_-5px_rgba(84,54,214,0.4)] flex items-center justify-center gap-2 hover:bg-[#4429B8] transition-all"
+                          >
+                            <CheckCircle2 size={20} /> Tugaskan
+                          </motion.button>
+                        </div>
+                        <div className="absolute -bottom-6 -right-6 opacity-5 group-hover:scale-125 transition-transform text-[#5436D6]">
+                          <BookOpen size={120} />
+                        </div>
+                      </motion.div>
 
-                    <div className="p-4 rounded-2xl bg-orange-50 border border-orange-100">
-                      <h3 className="font-bold text-orange-900 mb-1">Misi Numerasi (Kelas 4-6)</h3>
-                      <p className="text-xs text-orange-700 mb-3">Selesaikan kuis matematika dasar</p>
-                      <button 
-                        onClick={() => handleAssignMission('Misi Numerasi Dasar', 30, '🧮')}
-                        className="w-full py-2 bg-orange-600 text-white rounded-xl text-sm font-bold hover:bg-orange-700 transition-colors flex items-center justify-center gap-2"
+                      {/* Mission Card 2 - 3D Look */}
+                      <motion.div 
+                        whileHover={{ y: -8 }}
+                        className="p-7 rounded-[2.2rem] bg-[#FFF7ED] border-2 border-white shadow-[0_12px_0_0_#FFEDD5,0_25px_30px_-10px_rgba(232,131,58,0.15)] relative overflow-hidden group"
                       >
-                        <CheckCircle2 size={16} /> Tugaskan
-                      </button>
+                        <div className="relative z-10">
+                          <h3 className="font-black text-[#9A3412] text-xl mb-1">Misi Numerasi</h3>
+                          <p className="text-sm font-bold text-[#EA580C] opacity-80 mb-6">Selesaikan kuis matematika</p>
+                          <motion.button 
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ y: 8, boxShadow: 'none' }}
+                            onClick={() => handleAssignMission('Misi Numerasi Dasar', 30, '🧮')}
+                            className="w-full py-4 bg-[#E8833A] text-white rounded-[1.2rem] font-black shadow-[0_8px_0_0_#B86228,0_15px_20px_-5px_rgba(232,131,58,0.4)] flex items-center justify-center gap-2 hover:bg-[#D4722D] transition-all"
+                          >
+                            <CheckCircle2 size={20} /> Tugaskan
+                          </motion.button>
+                        </div>
+                        <div className="absolute -bottom-6 -right-6 opacity-5 group-hover:scale-125 transition-transform text-[#E8833A]">
+                          <ShieldAlert size={120} />
+                        </div>
+                      </motion.div>
                     </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
-
         </div>
       </div>
     </div>

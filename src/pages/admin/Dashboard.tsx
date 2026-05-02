@@ -1,12 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
+import { auth, db } from '../../lib/firebase';
+import { signOut } from 'firebase/auth';
+import { 
+  collection, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, 
+  limit, 
+  doc, 
+  getDoc 
+} from 'firebase/firestore';
 import { motion } from 'motion/react';
 import { ShieldCheck, Coins, Users, History, LogOut, Loader2, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+interface Profile {
+  id: string;
+  full_name: string;
+  coins: number;
+  class: string;
+  role: string;
+}
+
 const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState({ totalCoins: 0, totalStudents: 0 });
-  const [students, setStudents] = useState<any[]>([]);
+  const [students, setStudents] = useState<Profile[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -14,26 +33,69 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     const fetchAdminData = async () => {
       setLoading(true);
-      const [studentsRes, transRes] = await Promise.all([
-        supabase.from('profiles').select('*').eq('role', 'siswa').order('coins', { ascending: false }),
-        supabase.from('transactions').select('*, profiles(full_name)').order('created_at', { ascending: false }).limit(10)
-      ]);
+      try {
+        // Fetch Students
+        const studentsQuery = query(
+          collection(db, 'users'),
+          where('role', '==', 'siswa'),
+          orderBy('coins', 'desc')
+        );
+        const studentsSnap = await getDocs(studentsQuery);
+        const studentData = studentsSnap.docs.map(doc => ({ 
+          id: doc.id, 
+          ...doc.data() 
+        })) as Profile[];
+        
+        setStudents(studentData);
 
-      if (studentsRes.data) {
-        setStudents(studentsRes.data);
-        const total = studentsRes.data.reduce((acc, curr) => acc + (curr.coins || 0), 0);
-        setStats({ totalCoins: total, totalStudents: studentsRes.data.length });
+        const totalCoins = studentData.reduce((acc, curr) => acc + (curr.coins || 0), 0);
+        setStats({ totalCoins, totalStudents: studentData.length });
+
+        // Fetch Transactions
+        const transQuery = query(
+          collection(db, 'transactions'),
+          orderBy('created_at', 'desc'),
+          limit(10)
+        );
+        const transSnap = await getDocs(transQuery);
+        
+        // Fetch student names for transactions (Simulated join)
+        const transData = await Promise.all(transSnap.docs.map(async (transactionDoc) => {
+          const data = transactionDoc.data();
+          let studentName = 'Unknown';
+          
+          // Try to find in already fetched students
+          const student = studentData.find(s => s.id === data.student_id);
+          if (student) {
+            studentName = student.full_name;
+          } else if (data.student_id) {
+            // Fetch from Firestore if not in top list
+            const pSnap = await getDoc(doc(db, 'users', data.student_id));
+            if (pSnap.exists()) {
+              studentName = (pSnap.data() as Profile).full_name;
+            }
+          }
+          
+          return {
+            id: transactionDoc.id,
+            ...data,
+            profiles: { full_name: studentName } // Match existing UI expectation
+          };
+        }));
+        
+        setTransactions(transData);
+      } catch (error) {
+        console.error("Error fetching admin data:", error);
+      } finally {
+        setLoading(false);
       }
-
-      if (transRes.data) setTransactions(transRes.data);
-      setLoading(false);
     };
 
     fetchAdminData();
   }, []);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await signOut(auth);
     navigate('/login');
   };
 

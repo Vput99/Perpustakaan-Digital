@@ -1,5 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
+import { auth, db } from '../../lib/firebase';
+import { signOut } from 'firebase/auth';
+import { 
+  collection, 
+  getDocs, 
+  query, 
+  where, 
+  updateDoc, 
+  doc, 
+  addDoc, 
+  serverTimestamp,
+  orderBy,
+  limit
+} from 'firebase/firestore';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, Coins, LogOut, Loader2, CheckCircle2, User, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -16,14 +29,23 @@ const KantinDashboard: React.FC = () => {
   const searchStudents = async () => {
     if (!searchQuery.trim()) return;
     setLoading(true);
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('role', 'siswa')
-      .ilike('full_name', `%${searchQuery}%`);
-    
-    if (data) setStudents(data);
-    setLoading(false);
+    try {
+      // Simple prefix search for Firestore
+      const q = query(
+        collection(db, 'users'),
+        where('role', '==', 'siswa'),
+        where('full_name', '>=', searchQuery),
+        where('full_name', '<=', searchQuery + '\uf8ff')
+      );
+      
+      const querySnapshot = await getDocs(q);
+      const results = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setStudents(results);
+    } catch (error) {
+      console.error("Error searching students:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleTransaction = async (studentId: string, amount: number) => {
@@ -35,24 +57,19 @@ const KantinDashboard: React.FC = () => {
     setProcessing(true);
     try {
       // 1. Decrement coins
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ coins: selectedStudent.coins - amount })
-        .eq('id', studentId);
-
-      if (updateError) throw updateError;
+      const studentRef = doc(db, 'users', studentId);
+      await updateDoc(studentRef, {
+        coins: selectedStudent.coins - amount
+      });
 
       // 2. Record transaction
-      const { error: transError } = await supabase
-        .from('transactions')
-        .insert({
-          student_id: studentId,
-          amount: amount,
-          type: 'redeem',
-          description: `Penukaran di Kantin (${amount} Koin)`
-        });
-
-      if (transError) throw transError;
+      await addDoc(collection(db, 'transactions'), {
+        student_id: studentId,
+        amount: amount,
+        type: 'redeem',
+        description: `Penukaran di Kantin (${amount} Koin)`,
+        created_at: serverTimestamp()
+      });
 
       setSuccess({ msg: `Berhasil menukarkan ${amount} koin!`, amount });
       setSelectedStudent(null);
@@ -70,7 +87,7 @@ const KantinDashboard: React.FC = () => {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await signOut(auth);
     navigate('/login');
   };
 

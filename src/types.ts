@@ -14,7 +14,10 @@ export type Category = 'Semua' | 'Buku Pelajaran' | 'Buku Cerita' | 'Video' | 'N
 export interface Student {
   id: string;
   name: string;
+  full_name: string;
   absen: string;
+  class: string;
+  nisn: string;
   photo_url: string;
   coins: number;
 }

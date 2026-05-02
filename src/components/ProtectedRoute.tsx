@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { auth, db } from '../lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
@@ -15,11 +17,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
   const location = useLocation();
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
+        if (!user) {
           setAuthenticated(false);
           setLoading(false);
           return;
@@ -27,28 +27,22 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
 
         setAuthenticated(true);
 
-        // Fetch user profile to get role
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single();
+        // Fetch user profile from Firestore
+        const profileSnap = await getDoc(doc(db, 'users', user.uid));
 
-        if (error || !profile) {
-          console.error('Error fetching profile:', error);
-          setLoading(false);
-          return;
+        if (profileSnap.exists()) {
+          setUserRole(profileSnap.data().role);
+        } else {
+          console.error('Profile not found for user:', user.uid);
         }
-
-        setUserRole(profile.role);
       } catch (error) {
         console.error('Auth check error:', error);
       } finally {
         setLoading(false);
       }
-    };
+    });
 
-    checkAuth();
+    return () => unsubscribe();
   }, []);
 
   if (loading) {

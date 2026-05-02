@@ -5,7 +5,8 @@ import {
   Trash2, Brain, Wand2, ArrowLeft, Coins,
   Type, Smile, ClipboardList, HelpCircle
 } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { db } from '../../lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { fetchDriveData } from '../../services/driveService';
 
 interface MissionCreatorProps {
@@ -51,31 +52,31 @@ export default function MissionCreator({ onBack, onSuccess }: MissionCreatorProp
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('daily_tests')
-        .insert({
-          book_title: selectedBook,
-          chapter: selectedChapter,
-          questions: questions,
-          created_at: new Date().toISOString()
-        });
+      // Try to store in daily_tests collection
+      await addDoc(collection(db, 'daily_tests'), {
+        book_title: selectedBook,
+        chapter: selectedChapter,
+        questions: questions,
+        created_at: serverTimestamp()
+      });
 
-      if (error) {
-        // If daily_tests table doesn't exist, we'll try to store as a special quest for now
-        const { error: questError } = await supabase.from('quests').insert({
+      onSuccess(`Soal Ulangan untuk "${selectedBook}" berhasil dibuat!`);
+      onBack();
+    } catch (err: any) {
+      // Fallback: store as a special quest
+      try {
+        await addDoc(collection(db, 'quests'), {
           title: `Ulangan: ${selectedBook} (Bab ${selectedChapter})`,
           reward: 50,
           icon: '📝',
           description: JSON.stringify({ chapter: selectedChapter, questions }),
-          created_at: new Date().toISOString()
+          created_at: serverTimestamp()
         });
-        if (questError) throw questError;
+        onSuccess(`Soal Ulangan untuk "${selectedBook}" berhasil dibuat (Fallback)!`);
+        onBack();
+      } catch (innerErr: any) {
+        alert('Gagal: ' + innerErr.message);
       }
-      
-      onSuccess(`Soal Ulangan untuk "${selectedBook}" berhasil dibuat!`);
-      onBack();
-    } catch (err: any) {
-      alert('Gagal: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -85,16 +86,13 @@ export default function MissionCreator({ onBack, onSuccess }: MissionCreatorProp
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('quests')
-        .insert({
-          title,
-          reward,
-          icon,
-          created_at: new Date().toISOString()
-        });
+      await addDoc(collection(db, 'quests'), {
+        title,
+        reward,
+        icon,
+        created_at: serverTimestamp()
+      });
 
-      if (error) throw error;
       onSuccess(`Misi "${title}" berhasil dibuat!`);
       onBack();
     } catch (err: any) {
@@ -123,15 +121,16 @@ export default function MissionCreator({ onBack, onSuccess }: MissionCreatorProp
   const handleAssignAiMissions = async () => {
     setLoading(true);
     try {
-      const missions = aiResult.map(r => ({
-        title: r.question,
-        reward: r.reward,
-        icon: '🤖',
-        created_at: new Date().toISOString()
-      }));
+      const promises = aiResult.map(r => 
+        addDoc(collection(db, 'quests'), {
+          title: r.question,
+          reward: r.reward,
+          icon: '🤖',
+          created_at: serverTimestamp()
+        })
+      );
 
-      const { error } = await supabase.from('quests').insert(missions);
-      if (error) throw error;
+      await Promise.all(promises);
 
       onSuccess(`${aiResult.length} Misi AI berhasil ditugaskan!`);
       onBack();

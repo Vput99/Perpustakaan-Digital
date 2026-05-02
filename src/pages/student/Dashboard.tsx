@@ -1,5 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
+import { auth, db } from '../../lib/firebase';
+import { signOut } from 'firebase/auth';
+import { 
+  doc, 
+  getDoc, 
+  getDocs, 
+  collection, 
+  query, 
+  where, 
+  orderBy, 
+  limit, 
+  Timestamp 
+} from 'firebase/firestore';
 import { motion } from 'motion/react';
 import { 
   Coins, Trophy, LogOut, ChevronRight, BookOpen, Target, 
@@ -11,6 +23,8 @@ import { Canvas } from '@react-three/fiber';
 import { useGLTF, Float, Environment, ContactShadows, OrbitControls } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useRef } from 'react';
+import QuestModal from '../../components/QuestModal';
+import { AnimatePresence } from 'motion/react';
 
 const CoinModel = () => {
   const { scene } = useGLTF('/moneda__koin.glb');
@@ -50,32 +64,45 @@ const StudentDashboard: React.FC = () => {
   ]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
+  const [showQuestModal, setShowQuestModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const user = auth.currentUser;
+      if (!user) return;
 
-      const [profileRes, questsRes, historyRes, redeemRes] = await Promise.all([
-        supabase.from('profiles').select('*').eq('id', session.user.id).single(),
-        supabase.from('quests').select('*').limit(3),
-        supabase.from('borrow_history').select('*').eq('student_id', session.user.id).order('created_at', { ascending: false }).limit(3),
-        supabase.from('transactions').select('*').eq('student_id', session.user.id).eq('type', 'redeem').order('created_at', { ascending: false }).limit(3)
-      ]);
+      try {
+        const [profileRes, questsRes, historyRes, redeemRes] = await Promise.all([
+          getDoc(doc(db, 'users', user.uid)),
+          getDocs(query(collection(db, 'quests'), limit(3))),
+          getDocs(query(collection(db, 'borrow_history'), where('student_id', '==', user.uid), orderBy('created_at', 'desc'), limit(3))),
+          getDocs(query(collection(db, 'transactions'), where('student_id', '==', user.uid), where('type', '==', 'redeem'), orderBy('created_at', 'desc'), limit(3)))
+        ]);
 
-      if (profileRes.data) setProfile(profileRes.data);
-      if (questsRes.data) setQuests(questsRes.data);
-      if (historyRes.data) setHistory(historyRes.data);
-      if (redeemRes.data) setRedemptions(redeemRes.data);
-      setLoading(false);
+        if (profileRes.exists()) setProfile({ id: profileRes.id, ...profileRes.data() });
+        
+        setQuests(questsRes.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        setHistory(historyRes.docs.map(doc => {
+          const data = doc.data();
+          return {
+            ...data,
+            created_at: data.created_at instanceof Timestamp ? data.created_at.toDate().toISOString() : data.created_at
+          };
+        }));
+        setRedemptions(redeemRes.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      } catch (error) {
+        console.error("Error fetching student dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchData();
   }, []);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await signOut(auth);
     navigate('/login');
   };
 
@@ -282,8 +309,14 @@ const StudentDashboard: React.FC = () => {
                       <h3 className="text-2xl font-black text-white">Tugas Baru</h3>
                     </div>
                     <div className="space-y-6">
-                      {[{ title: 'Kuis Literasi Pekanan', deadline: 'Tenggat Waktu', icon: '⚡' }].map((task, i) => (
-                        <div key={i} className="p-6 bg-white/5 rounded-3xl border border-white/5 flex items-center justify-between">
+                      {[{ title: 'Kuis Literasi Pekanan', deadline: 'Ambil Tugas', icon: '⚡' }].map((task, i) => (
+                        <motion.button 
+                          key={i} 
+                          whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.08)' }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setShowQuestModal(true)}
+                          className="w-full p-6 bg-white/5 rounded-3xl border border-white/5 flex items-center justify-between text-left"
+                        >
                           <div className="flex items-center gap-5">
                             <div className="text-3xl">{task.icon}</div>
                             <div>
@@ -292,7 +325,7 @@ const StudentDashboard: React.FC = () => {
                             </div>
                           </div>
                           <p className="text-xs font-black text-blue-400">{task.deadline}</p>
-                        </div>
+                        </motion.button>
                       ))}
                     </div>
                   </motion.div>
@@ -310,7 +343,13 @@ const StudentDashboard: React.FC = () => {
                     </div>
                     <div className="space-y-6">
                       {quests.map((quest) => (
-                        <div key={quest.id} className="p-6 bg-white/5 rounded-3xl border border-white/5 flex items-center justify-between group">
+                        <motion.button 
+                          key={quest.id} 
+                          whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.08)' }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setShowQuestModal(true)}
+                          className="w-full p-6 bg-white/5 rounded-3xl border border-white/5 flex items-center justify-between group text-left"
+                        >
                           <div className="flex items-center gap-5">
                             <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-3xl">{quest.icon || '📖'}</div>
                             <div>
@@ -318,8 +357,8 @@ const StudentDashboard: React.FC = () => {
                               <p className="text-[10px] font-black text-yellow-400 uppercase mt-2 tracking-[0.2em]">+{quest.reward} KOIN</p>
                             </div>
                           </div>
-                          <ChevronRight size={24} className="text-white/40" />
-                        </div>
+                          <ChevronRight size={24} className="text-white/40 group-hover:text-white transition-colors" />
+                        </motion.button>
                       ))}
                     </div>
                   </motion.div>
@@ -449,6 +488,10 @@ const StudentDashboard: React.FC = () => {
           </div>
         </div>
       </main>
+      
+      <AnimatePresence>
+        {showQuestModal && <QuestModal onClose={() => setShowQuestModal(false)} />}
+      </AnimatePresence>
 
       {/* Aesthetic Floating Particles */}
       {[...Array(20)].map((_, i) => (

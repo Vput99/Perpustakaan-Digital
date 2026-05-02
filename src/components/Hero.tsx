@@ -19,7 +19,7 @@ export default function Hero() {
   }, []);
 
   return (
-    <div className="relative h-full min-h-[320px] overflow-hidden bg-blue-600 rounded-3xl flex items-center p-8 md:p-12 shadow-md shadow-blue-100" id="hero-section">
+    <div className="relative h-full min-h-[320px] overflow-hidden bg-blue-600/20 backdrop-blur-lg rounded-[2.5rem] flex items-center p-8 md:p-12 border border-white/10 shadow-2xl" id="hero-section">
       <div className="z-10 max-w-md">
         <motion.h2 
           initial={{ opacity: 0, x: -50 }}

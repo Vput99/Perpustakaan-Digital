@@ -1,8 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-nunito: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  --font-cursive: "Great Vibes", cursive;
 }
 
 @layer base {
@@ -11,3 +13,48 @@
     @apply bg-slate-50 text-slate-900 antialiased;
   }
 }
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 0;
+  }
+  
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    background: none !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #certificate-print-area, #certificate-print-area * {
+    visibility: visible;
+  }
+
+  #certificate-print-area {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 297mm !important;
+    height: 210mm !important;
+    padding: 20mm !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+    background-color: white !important;
+    z-index: 9999 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Cleanup CSS */

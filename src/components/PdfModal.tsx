@@ -133,11 +133,26 @@ export default function PdfModal({ url, title, onClose }: PdfModalProps) {
             }}
             loading={
               <div className="flex flex-col items-center justify-center text-slate-500 z-10 relative">
-                <div className="w-48 h-48 md:w-64 md:h-64 mb-4">
-                  <RiveComponent className="w-full h-full" />
+                <div className="relative w-64 h-64 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full animate-pulse" />
+                  <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="relative z-10 w-full h-full object-contain mix-blend-multiply"
+                  >
+                    <source src="/loading.webm" type="video/webm" />
+                  </video>
                 </div>
-                <h3 className="text-2xl font-black text-slate-800 mb-2">Menyiapkan Buku...</h3>
-                <p className="font-bold">Membuka setiap halamannya untukmu!</p>
+                <motion.h3 
+                  animate={{ opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="text-2xl font-black text-slate-800 mb-2 mt-4"
+                >
+                  Menyiapkan Buku...
+                </motion.h3>
+                <p className="font-bold text-slate-500 uppercase tracking-widest text-xs">Membuka setiap halamannya untukmu!</p>
               </div>
             }
             error={
