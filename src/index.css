@@ -14,47 +14,62 @@
   }
 }
 
+/* Shimmer animation for gold effects */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
 @media print {
+  /* Ukuran halaman A4 Landscape, tanpa margin */
   @page {
-    size: A4 landscape;
+    size: 297mm 210mm landscape;
     margin: 0;
   }
-  
-  body {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    background: none !important;
-  }
 
+  /* Sembunyikan semua konten halaman kecuali sertifikat */
+  body > *,
   body * {
-    visibility: hidden;
+    visibility: hidden !important;
   }
 
-  #certificate-print-area, #certificate-print-area * {
-    visibility: visible;
+  /* Tampilkan hanya area sertifikat */
+  #certificate-print-area,
+  #certificate-print-area * {
+    visibility: visible !important;
   }
 
+  /* Posisikan sertifikat memenuhi seluruh halaman A4 Landscape */
   #certificate-print-area {
     position: fixed !important;
-    left: 0 !important;
-    top: 0 !important;
+    inset: 0 !important;
     width: 297mm !important;
     height: 210mm !important;
-    padding: 20mm !important;
+    padding: 0 !important;
     margin: 0 !important;
     border: none !important;
     box-shadow: none !important;
     transform: none !important;
-    background-color: white !important;
-    z-index: 9999 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
+    overflow: hidden !important;
+    z-index: 99999 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
+  /* iframe Canva harus mengisi seluruh area */
+  #certificate-print-area iframe {
+    position: absolute !important;
+    width: 100% !important;
+    height: 100% !important;
+    top: 0 !important;
+    left: 0 !important;
+    border: none !important;
+    visibility: visible !important;
+  }
+
+  /* Sembunyikan elemen UI yang tidak perlu dicetak */
   .no-print {
     display: none !important;
+    visibility: hidden !important;
   }
 }
-
-/* Cleanup CSS */

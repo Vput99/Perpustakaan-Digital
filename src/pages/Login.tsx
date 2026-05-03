@@ -8,8 +8,10 @@ import {
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'motion/react';
 import { LogIn, User, Lock, Loader2, UserPlus, BookOpen, GraduationCap } from 'lucide-react';
+import { useSmartSchool } from '../context/SmartSchoolContext';
 
 const Login: React.FC = () => {
+  const { showToast } = useSmartSchool();
   const [isRegister, setIsRegister] = useState(false);
   const [role, setRole] = useState<'siswa' | 'guru' | 'umum' | 'admin'>('siswa');
   const [nisn, setNisn] = useState('');
@@ -18,13 +20,11 @@ const Login: React.FC = () => {
   const [grade, setGrade] = useState('');
   const [subject, setSubject] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
 
     try {
       const email = nisn.includes('@') ? nisn : `${nisn}@smartlibrary.id`;
@@ -51,7 +51,7 @@ const Login: React.FC = () => {
           });
           console.log("Profile saved.");
           
-          alert('Pendaftaran berhasil! Silakan masuk.');
+          showToast('Pendaftaran berhasil! Silakan masuk.', 'success');
           setIsRegister(false);
         }
       } else {
@@ -77,13 +77,13 @@ const Login: React.FC = () => {
             else navigate('/');
           } else {
             console.log("Profile not found.");
-            setError('Profil tidak ditemukan.');
+            showToast('Profil tidak ditemukan.', 'error');
           }
         }
       }
     } catch (err: any) {
       console.error("Auth Error:", err);
-      setError(err.message || 'Terjadi kesalahan. Silakan coba lagi.');
+      showToast(err.message || 'Terjadi kesalahan. Silakan coba lagi.', 'error');
     } finally {
       console.log("Auth process finished.");
       setLoading(false);
@@ -150,15 +150,7 @@ const Login: React.FC = () => {
           </div>
         )}
 
-        {error && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="mb-6 p-4 bg-red-50 border-2 border-red-100 text-red-600 rounded-2xl text-sm font-bold flex items-center gap-2"
-          >
-            <span>⚠️ {error}</span>
-          </motion.div>
-        )}
+
 
         <form onSubmit={handleAuth} className="space-y-4">
           <div className="space-y-2">

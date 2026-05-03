@@ -1,4 +1,4 @@
-import { Users, ShieldAlert, ListChecks, CheckCircle2, ShoppingBag, BookOpen, Clock, X, ChevronRight, Loader2, Plus, LogOut, Send, PenTool, SendHorizonal, Paperclip, Settings } from 'lucide-react';
+import { Users, ShieldAlert, ListChecks, CheckCircle2, ShoppingBag, BookOpen, Clock, X, ChevronRight, Loader2, Plus, LogOut, Send, PenTool, SendHorizonal, Paperclip, Settings, Award, Banknote } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
@@ -14,6 +14,7 @@ import {
   query, 
   where, 
   orderBy, 
+  limit,
   serverTimestamp,
   Timestamp 
 } from 'firebase/firestore';
@@ -25,7 +26,10 @@ export default function AdminView() {
   const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
   const navigate = useNavigate();
   const [readingHistory, setReadingHistory] = useState<any[]>([]);
+  const [studentQuests, setStudentQuests] = useState<any[]>([]);
+  const [studentCerts, setStudentCerts] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [activeDetailTab, setActiveDetailTab] = useState<'riwayat' | 'misi'>('riwayat');
   const [showToast, setShowToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
 
   const handleAssignMission = async (title: string, reward: number, icon: string) => {
@@ -34,6 +38,7 @@ export default function AdminView() {
         title,
         reward,
         icon,
+        target_class: profile?.class || 'Semua',
         created_at: serverTimestamp()
       });
 
@@ -47,31 +52,30 @@ export default function AdminView() {
 
   useEffect(() => {
     if (selectedStudent) {
-      const fetchHistory = async () => {
+      const fetchData = async () => {
         setLoadingHistory(true);
         try {
-          const q = query(
-            collection(db, 'borrow_history'),
-            where('student_id', '==', selectedStudent.id),
-            orderBy('created_at', 'desc')
-          );
-          const querySnapshot = await getDocs(q);
-          const history = querySnapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              ...data,
-              created_at: data.created_at instanceof Timestamp ? data.created_at.toDate().toISOString() : data.created_at
-            };
-          });
-          setReadingHistory(history);
+          const [historyRes, questsRes, certsRes] = await Promise.all([
+            getDocs(query(collection(db, 'borrow_history'), where('student_id', '==', selectedStudent.id), orderBy('created_at', 'desc'), limit(10))),
+            getDocs(query(collection(db, 'quests'), where('target_class', 'in', [selectedStudent.class?.toString(), 'Semua']))),
+            getDocs(query(collection(db, 'certificates'), where('student_id', '==', selectedStudent.id), orderBy('created_at', 'desc')))
+          ]);
+
+          setReadingHistory(historyRes.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            created_at: doc.data().created_at instanceof Timestamp ? doc.data().created_at.toDate().toISOString() : doc.data().created_at
+          })));
+
+          setStudentQuests(questsRes.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+          setStudentCerts(certsRes.docs.map(doc => ({ id: doc.id, ...doc.data() })));
         } catch (error) {
-          console.error("Error fetching history:", error);
+          console.error("Error fetching student details:", error);
         } finally {
           setLoadingHistory(false);
         }
       };
-      fetchHistory();
+      fetchData();
     }
   }, [selectedStudent]);
 
@@ -92,6 +96,7 @@ export default function AdminView() {
     return (
       <MissionCreator 
         onBack={() => setView('admin')} 
+        targetClass={profile?.class}
         onSuccess={(msg) => {
           setShowToast({ message: msg, type: 'success' });
           setTimeout(() => setShowToast(null), 3000);
@@ -205,6 +210,17 @@ export default function AdminView() {
                 Buka Kantin Sehat
               </motion.button>
 
+              {/* 3D Blue Button for Withdraw */}
+              <motion.button 
+                whileHover={{ y: -2 }}
+                whileTap={{ y: 8, boxShadow: 'none' }}
+                onClick={() => navigate('/admin/withdraw')}
+                className="flex items-center gap-3 px-8 py-4 bg-[#3182CE] text-white rounded-[1.5rem] font-black transition-all shadow-[0_10px_0_0_#2A69AC,0_20px_30px_-10px_rgba(49,130,206,0.4)] border-b-2 border-[#FFFFFF20]"
+              >
+                <Banknote size={22} />
+                Withdraw Koin
+              </motion.button>
+
               {/* 3D Logout Button */}
               <motion.button 
                 whileHover={{ y: -2 }}
@@ -313,10 +329,21 @@ export default function AdminView() {
                     exit={{ opacity: 0, x: 30 }}
                     className="bg-[#EDFDFD]/90 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white shadow-[0_25px_50px_-12px_rgba(0,0,0,0.1)] flex-1 flex flex-col"
                   >
-                    <div className="flex items-center justify-between mb-8">
-                      <h2 className="text-2xl font-black text-[#234E52] flex items-center gap-3">
-                        <BookOpen className="text-[#319795]" size={28} /> Riwayat
-                      </h2>
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex bg-white/50 p-1 rounded-2xl border border-[#B2F5EA]">
+                        <button
+                          onClick={() => setActiveDetailTab('riwayat')}
+                          className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${activeDetailTab === 'riwayat' ? 'bg-[#319795] text-white shadow-lg' : 'text-[#319795] hover:bg-white/50'}`}
+                        >
+                          RIWAYAT
+                        </button>
+                        <button
+                          onClick={() => setActiveDetailTab('misi')}
+                          className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${activeDetailTab === 'misi' ? 'bg-[#319795] text-white shadow-lg' : 'text-[#319795] hover:bg-white/50'}`}
+                        >
+                          MISI & TUGAS
+                        </button>
+                      </div>
                       <motion.button 
                         whileHover={{ scale: 1.1, rotate: 90 }}
                         whileTap={{ scale: 0.9 }}
@@ -327,9 +354,16 @@ export default function AdminView() {
                       </motion.button>
                     </div>
 
-                    <div className="bg-white/80 p-5 rounded-[1.8rem] border border-[#B2F5EA] mb-6 shadow-md -translate-y-1">
-                      <p className="text-[10px] font-black text-[#319795] uppercase tracking-widest mb-1">DATA SISWA</p>
-                      <p className="text-2xl font-black text-[#234E52] leading-tight">{selectedStudent.full_name || selectedStudent.name}</p>
+                    <div className="bg-white/80 p-5 rounded-[1.8rem] border border-[#B2F5EA] mb-6 shadow-md flex items-center gap-4">
+                      <img 
+                        src={selectedStudent.photo_url || `https://api.dicebear.com/7.x/adventurer/svg?seed=${selectedStudent.full_name}`} 
+                        alt="avatar" 
+                        className="w-12 h-12 rounded-xl bg-white border border-slate-100" 
+                      />
+                      <div>
+                        <p className="text-[10px] font-black text-[#319795] uppercase tracking-widest mb-0.5">SISWA TERPILIH</p>
+                        <p className="text-xl font-black text-[#234E52] leading-tight">{selectedStudent.full_name || selectedStudent.name}</p>
+                      </div>
                     </div>
 
                     <div className="flex-1 overflow-y-auto pr-2 space-y-4">
@@ -337,30 +371,94 @@ export default function AdminView() {
                         <div className="py-20 text-center">
                           <Loader2 className="animate-spin mx-auto text-[#319795] opacity-50" size={40} />
                         </div>
-                      ) : readingHistory.length > 0 ? (
-                        readingHistory.map((h, i) => (
-                          <motion.div 
-                            initial={{ opacity: 0, y: 15 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: i * 0.05 }}
-                            key={i} 
-                            className="p-5 bg-white border border-white rounded-[1.5rem] flex items-center gap-5 shadow-[0_4px_0_0_#E6FFFA,0_8px_15px_-5px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_0_0_#E6FFFA,0_12px_20px_-5px_rgba(0,0,0,0.08)] transition-all group"
-                          >
-                            <div className="w-12 h-12 bg-[#E6FFFA] text-[#319795] rounded-2xl flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform">
-                              <BookOpen size={22} />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="font-black text-[#234E52] text-base truncate leading-tight">{h.book_title}</p>
-                              <div className="flex items-center gap-2 text-[10px] text-[#4FD1C5] font-black mt-1.5 uppercase">
-                                <Clock size={12} /> {new Date(h.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                      ) : activeDetailTab === 'riwayat' ? (
+                        readingHistory.length > 0 ? (
+                          readingHistory.map((h, i) => (
+                            <motion.div 
+                              initial={{ opacity: 0, y: 15 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: i * 0.05 }}
+                              key={i} 
+                              className="p-5 bg-white border border-white rounded-[1.5rem] flex items-center gap-5 shadow-[0_4px_0_0_#E6FFFA,0_8px_15px_-5px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_0_0_#E6FFFA,0_12px_20px_-5px_rgba(0,0,0,0.08)] transition-all group"
+                            >
+                              <div className="w-12 h-12 bg-[#E6FFFA] text-[#319795] rounded-2xl flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform">
+                                <BookOpen size={22} />
                               </div>
-                            </div>
-                          </motion.div>
-                        ))
+                              <div className="min-w-0">
+                                <p className="font-black text-[#234E52] text-base truncate leading-tight">{h.book_title}</p>
+                                <div className="flex items-center gap-2 text-[10px] text-[#4FD1C5] font-black mt-1.5 uppercase">
+                                  <Clock size={12} /> {new Date(h.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                                </div>
+                              </div>
+                            </motion.div>
+                          ))
+                        ) : (
+                          <div className="flex flex-col items-center justify-center h-full opacity-30 text-[#319795] space-y-3 py-10">
+                            <BookOpen size={60} />
+                            <p className="text-lg font-black italic">Belum ada riwayat.</p>
+                          </div>
+                        )
                       ) : (
-                        <div className="flex flex-col items-center justify-center h-full opacity-30 text-[#319795] space-y-3 py-10">
-                          <BookOpen size={60} />
-                          <p className="text-lg font-black italic">Belum ada riwayat.</p>
+                        <div className="space-y-6">
+                          {/* Section: Earned Certificates */}
+                          <div>
+                            <h3 className="text-xs font-black text-[#319795] uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                              <Award size={14} /> Sertifikat Diperoleh ({studentCerts.length})
+                            </h3>
+                            {studentCerts.length > 0 ? (
+                              <div className="space-y-3">
+                                {studentCerts.map((cert, i) => (
+                                  <motion.div 
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    key={i}
+                                    className="p-4 bg-white/60 border border-amber-100 rounded-2xl flex items-center gap-4"
+                                  >
+                                    <div className="w-10 h-10 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center shrink-0">
+                                      <Award size={20} />
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="font-black text-[#234E52] text-sm truncate">{cert.quest_title}</p>
+                                      <p className="text-[10px] font-bold text-amber-600 uppercase">{cert.date}</p>
+                                    </div>
+                                  </motion.div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-xs font-bold text-[#319795]/50 italic text-center py-4 bg-white/30 rounded-2xl border border-dashed border-[#B2F5EA]">Belum ada sertifikat.</p>
+                            )}
+                          </div>
+
+                          {/* Section: Class Missions */}
+                          <div>
+                            <h3 className="text-xs font-black text-[#319795] uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                              <ListChecks size={14} /> Misi Kelas Aktif
+                            </h3>
+                            {studentQuests.length > 0 ? (
+                              <div className="space-y-3">
+                                {studentQuests.map((q, i) => (
+                                  <motion.div 
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    key={i}
+                                    className="p-4 bg-white/40 border border-white rounded-2xl flex items-center justify-between gap-4"
+                                  >
+                                    <div className="flex items-center gap-4 min-w-0">
+                                      <div className="w-10 h-10 bg-slate-100 text-slate-500 rounded-xl flex items-center justify-center shrink-0 text-xl">
+                                        {q.icon || '🎯'}
+                                      </div>
+                                      <div className="min-w-0">
+                                        <p className="font-black text-[#2D3748] text-sm truncate">{q.title}</p>
+                                        <p className="text-[10px] font-bold text-indigo-500 uppercase">Hadiah: {q.reward} Koin</p>
+                                      </div>
+                                    </div>
+                                  </motion.div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-xs font-bold text-[#319795]/50 italic text-center py-4 bg-white/30 rounded-2xl border border-dashed border-[#B2F5EA]">Tidak ada misi kelas.</p>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>

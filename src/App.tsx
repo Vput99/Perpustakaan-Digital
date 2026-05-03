@@ -5,11 +5,16 @@ import LibraryPage from './pages/Library';
 import StudentDashboard from './pages/student/Dashboard';
 import KantinDashboard from './pages/kantin/Dashboard';
 import AdminView from './pages/AdminView';
+import WithdrawPage from './pages/admin/WithdrawPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import GlobalToast from './components/GlobalToast';
+import GlobalConfirm from './components/GlobalConfirm';
 
 export default function App() {
   return (
     <SmartSchoolProvider>
+      <GlobalToast />
+      <GlobalConfirm />
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
@@ -41,6 +46,15 @@ export default function App() {
           element={
             <ProtectedRoute allowedRoles={['admin', 'guru']}>
               <AdminView />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/admin/withdraw" 
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <WithdrawPage />
             </ProtectedRoute>
           } 
         />

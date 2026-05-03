@@ -1,11 +1,34 @@
 /**
- * KantinAdmin - Halaman Kantin Sehat
- * Allows admin to search students and exchange coins for healthy snacks/drinks.
+ * KantinAdmin - Halaman Kantin Sehat (Merchant View)
+ * Allows admin to view all items like a store and select a student to process redemptions.
  */
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Coins, Cookie, CupSoda, ArrowLeft, CheckCircle, XCircle, Sparkles, ShoppingBag, History } from 'lucide-react';
+import { 
+  Search, 
+  Coins, 
+  Cookie, 
+  CupSoda, 
+  ArrowLeft, 
+  CheckCircle, 
+  XCircle, 
+  Sparkles, 
+  ShoppingBag, 
+  History,
+  User,
+  X,
+  ChevronRight,
+  TrendingUp,
+  Tag,
+  Plus,
+  PackagePlus,
+  Image as ImageIcon,
+  Edit2,
+  Trash2
+} from 'lucide-react';
+import { db } from '../lib/firebase';
+import { collection, addDoc, getDocs, updateDoc, doc, serverTimestamp, deleteDoc } from 'firebase/firestore';
 import { useSmartSchool } from '../context/SmartSchoolContext';
 import type { Student, TransactionLog } from '../types';
 
@@ -19,26 +42,73 @@ interface Toast {
   type: 'success' | 'error';
 }
 
-interface StudentCardProps {
-  key?: React.Key;
-  student: Student;
-  index: number;
-  onExchange: (student: Student, amount: number, item: string) => void;
-}
-
-interface TransactionItemProps {
-  key?: React.Key;
-  log: TransactionLog;
-  studentName: string;
-}
+const ITEMS = [
+  { id: '1', name: 'Pensil 2B High Quality', icon: '✏️', price: 2, stock: 45, image: 'https://cdn-icons-png.flaticon.com/512/588/588395.png', category: 'Alat Tulis' },
+  { id: '2', name: 'Penghapus Putih Bersih', icon: '🧹', price: 2, stock: 12, image: 'https://cdn-icons-png.flaticon.com/512/2619/2619313.png', category: 'Alat Tulis' },
+  { id: '3', name: 'Penggaris 30cm Transparan', icon: '📏', price: 3, stock: 8, image: 'https://cdn-icons-png.flaticon.com/512/2965/2965223.png', category: 'Alat Tulis' },
+  { id: '4', name: 'Rautan Putar Otomatis', icon: '⚙️', price: 3, stock: 0, image: 'https://cdn-icons-png.flaticon.com/512/3067/3067451.png', category: 'Alat Tulis' },
+  { id: '5', name: 'Buku Tulis Sidu 38 Lembar', icon: '📓', price: 5, stock: 60, image: 'https://cdn-icons-png.flaticon.com/512/3389/3389152.png', category: 'Buku' },
+  { id: '6', name: 'Snack Sehat Gandum', icon: '🍪', price: 5, stock: 15, image: 'https://cdn-icons-png.flaticon.com/512/2553/2553691.png', category: 'Makanan' },
+  { id: '7', name: 'Kotak Pensil Karakter', icon: '👝', price: 8, stock: 4, image: 'https://cdn-icons-png.flaticon.com/512/3067/3067512.png', category: 'Aksesori' },
+  { id: '8', name: 'Susu Kotak Ultra Milk', icon: '🥛', price: 10, stock: 10, image: 'https://cdn-icons-png.flaticon.com/512/2405/2405479.png', category: 'Minuman' },
+  { id: '9', name: 'Paket Belajar Lengkap', icon: '🎁', price: 20, stock: 5, image: 'https://cdn-icons-png.flaticon.com/512/4230/4230633.png', category: 'Paket' },
+];
 
 export default function KantinAdmin({ onBack }: KantinAdminProps) {
-  const { searchStudents, updateStudentCoins, transactionLogs, students } = useSmartSchool();
+  const { searchStudents, updateStudentCoins, transactionLogs, students, showToast, showConfirm } = useSmartSchool();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Student[]>([]);
-  const [toasts, setToasts] = useState<Toast[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [showAddItemModal, setShowAddItemModal] = useState(false);
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [canteenItems, setCanteenItems] = useState<any[]>(ITEMS);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newItem, setNewItem] = useState({
+    name: '',
+    category: 'Alat Tulis',
+    price: 0,
+    stock: 0,
+    image: '',
+    icon: '📦'
+  });
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const resetForm = () => {
+    setNewItem({ name: '', category: 'Alat Tulis', price: 0, stock: 0, image: '', icon: '📦' });
+    setEditingItem(null);
+  };
+
+  const openEditModal = (item: any) => {
+    setEditingItem(item);
+    setNewItem({
+      name: item.name,
+      category: item.category || 'Alat Tulis',
+      price: item.price,
+      stock: item.stock,
+      image: item.image || '',
+      icon: item.icon || '📦'
+    });
+    setShowAddItemModal(true);
+  };
+
+  useEffect(() => {
+    const fetchCanteenItems = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'canteen_items'));
+        if (!querySnapshot.empty) {
+          const itemsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          setCanteenItems(itemsData);
+        } else {
+          // If empty, initialize with default ITEMS if needed
+          // setCanteenItems(ITEMS);
+        }
+      } catch (err) {
+        console.error("Error fetching canteen items:", err);
+      }
+    };
+    fetchCanteenItems();
+  }, []);
 
   useEffect(() => {
     if (query.trim()) {
@@ -48,353 +118,521 @@ export default function KantinAdmin({ onBack }: KantinAdminProps) {
     }
   }, [query, searchStudents, students]);
 
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
 
-  const addToast = (message: string, type: 'success' | 'error') => {
-    const id = `toast_${Date.now()}`;
-    setToasts(prev => [...prev, { id, message, type }]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 3500);
-  };
 
-  const handleExchange = (student: Student, amount: number, item: string) => {
-    const success = updateStudentCoins(student.id, -amount, `Tukar ${amount} koin untuk ${item}`);
+  const handleExchange = async (item: any) => {
+    if (!selectedStudent) {
+      showToast('Pilih siswa terlebih dahulu untuk menukarkan barang!', 'error');
+      inputRef.current?.focus();
+      return;
+    }
+
+    if (item.stock <= 0) {
+      showToast('Maaf, stok barang sedang habis!', 'error');
+      return;
+    }
+
+    if (selectedStudent.coins < item.price) {
+      showToast(`Koin ${selectedStudent.name} tidak cukup! (Saldo: ${selectedStudent.coins})`, 'error');
+      return;
+    }
+
+    const success = await updateStudentCoins(selectedStudent.id, -item.price, `Tukar ${item.name} (${item.price} Koin)`);
     if (success) {
-      addToast(`✅ ${student.name} menukar ${amount} koin untuk ${item}!`, 'success');
+      showToast(`✅ Berhasil! ${selectedStudent.name} menukar ${item.name}`, 'success');
+      
+      // Deduct stock in Firestore
+      try {
+        const itemRef = doc(db, 'canteen_items', item.id);
+        await updateDoc(itemRef, {
+          stock: item.stock - 1
+        });
+        // Update local state
+        setCanteenItems(prev => prev.map(i => i.id === item.id ? { ...i, stock: i.stock - 1 } : i));
+      } catch (err) {
+        console.error("Error updating stock:", err);
+      }
+
+      // Update selected student coins locally
+      setSelectedStudent(prev => prev ? { ...prev, coins: prev.coins - item.price } : null);
     } else {
-      addToast(`❌ Koin ${student.name} tidak cukup! (Saldo: ${student.coins})`, 'error');
+      showToast('Gagal memproses transaksi.', 'error');
     }
   };
 
-  const recentLogs = transactionLogs
-    .filter(l => l.amount < 0)
-    .slice(0, 15);
+  const handleAddItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newItem.name || !newItem.price) return showToast('Nama dan Harga harus diisi!', 'error');
+    
+    setIsSubmitting(true);
+    try {
+      if (editingItem) {
+        // Update existing item
+        const itemRef = doc(db, 'canteen_items', editingItem.id);
+        await updateDoc(itemRef, {
+          ...newItem,
+          updated_at: serverTimestamp()
+        });
+        
+        setCanteenItems(prev => prev.map(i => i.id === editingItem.id ? { ...i, ...newItem } : i));
+        showToast('Barang berhasil diperbarui!', 'success');
+      } else {
+        // Add new item
+        const docRef = await addDoc(collection(db, 'canteen_items'), {
+          ...newItem,
+          created_at: serverTimestamp()
+        });
+        
+        const addedItem = { id: docRef.id, ...newItem };
+        setCanteenItems(prev => [addedItem, ...prev]);
+        showToast('Barang berhasil ditambahkan ke katalog!', 'success');
+      }
+      setShowAddItemModal(false);
+      resetForm();
+    } catch (err) {
+      console.error("Error saving item:", err);
+      showToast('Gagal menyimpan barang.', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteItem = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Don't trigger exchange flow
+    const confirmed = await showConfirm(
+      'Hapus Barang?',
+      'Apakah Anda yakin ingin menghapus barang ini dari katalog? Tindakan ini tidak dapat dibatalkan.'
+    );
+    
+    if (!confirmed) return;
+
+    try {
+      await deleteDoc(doc(db, 'canteen_items', id));
+      setCanteenItems(prev => prev.filter(i => i.id !== id));
+      showToast('Barang berhasil dihapus!', 'success');
+    } catch (err) {
+      console.error("Error deleting item:", err);
+      showToast('Gagal menghapus barang.', 'error');
+    }
+  };
 
   const getStudentName = (id: string) => students.find(s => s.id === id)?.name || 'Unknown';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 relative overflow-hidden">
-      {/* Floating background elements */}
-      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <motion.div
-          animate={{ y: [0, -30, 0], rotate: [0, 20, -20, 0] }}
-          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-20 left-[8%] text-7xl opacity-15"
-        >🍎</motion.div>
-        <motion.div
-          animate={{ y: [0, 25, 0], x: [0, 15, 0] }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[30%] right-[5%] text-8xl opacity-10"
-        >🥛</motion.div>
-        <motion.div
-          animate={{ y: [0, -35, 0], rotate: 360 }}
-          transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-          className="absolute bottom-[20%] left-[3%] text-6xl opacity-15"
-        >🍪</motion.div>
-        <motion.div
-          animate={{ y: [0, 20, 0], scale: [1, 1.2, 1] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute bottom-[40%] right-[8%] text-7xl opacity-10"
-        >🧃</motion.div>
-      </div>
+    <div className="min-h-screen bg-slate-50 relative font-nunito overflow-x-hidden">
+      {/* Tokopedia style top banner/accent */}
+      <div className="absolute top-0 left-0 w-full h-[300px] bg-gradient-to-b from-emerald-500 to-emerald-600/0 opacity-10 pointer-events-none" />
 
-      {/* Toast notifications */}
-      <div className="fixed top-6 right-6 z-[200] space-y-3">
-        <AnimatePresence>
-          {toasts.map(toast => (
-            <motion.div
-              key={toast.id}
-              initial={{ opacity: 0, x: 100, scale: 0.8 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: 100, scale: 0.8 }}
-              className={`px-6 py-4 rounded-2xl shadow-2xl font-bold text-sm backdrop-blur-sm max-w-sm ${
-                toast.type === 'success'
-                  ? 'bg-emerald-500/95 text-white shadow-emerald-200'
-                  : 'bg-rose-500/95 text-white shadow-rose-200'
-              }`}
+      <div className="relative z-10 max-w-[1400px] mx-auto p-6 lg:p-10">
+        {/* Top Navigation Bar - Merchant Style */}
+        <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between mb-10 bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
+          <div className="flex items-center gap-6">
+            <button 
+              onClick={onBack}
+              className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 transition-all group"
             >
-              <div className="flex items-center gap-2">
-                {toast.type === 'success' ? <CheckCircle size={18} /> : <XCircle size={18} />}
-                <span>{toast.message}</span>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
+              <ArrowLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
+            </button>
+            <div>
+              <h1 className="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+                <ShoppingBag className="text-emerald-500" size={32} />
+                Kantin Sehat <span className="text-emerald-500 font-medium">Merchant</span>
+              </h1>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Terminal Penukaran Koin SD Negeri Tempurejo 1</p>
+            </div>
+          </div>
 
-      <div className="relative z-10 mx-auto max-w-4xl p-4 md:p-6 lg:p-8 space-y-6">
-        {/* Header */}
-        <motion.div
-          initial={{ y: -30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-lg shadow-orange-100/50 border-2 border-white/60"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <motion.button
-                whileHover={{ scale: 1.1, x: -3 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={onBack}
-                className="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center text-orange-600 hover:bg-orange-200 transition-colors"
-              >
-                <ArrowLeft size={22} />
-              </motion.button>
-              <div>
-                <div className="flex items-center gap-2">
-                  <motion.div
-                    animate={{ rotate: [0, 10, -10, 0] }}
-                    transition={{ duration: 3, repeat: Infinity }}
+          <div className="flex items-center gap-4 w-full lg:w-auto">
+            <div className="relative flex-1 lg:w-[400px]">
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
+              <input 
+                ref={inputRef}
+                type="text" 
+                placeholder="Cari siswa (Nama/Absen)..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="w-full h-14 bg-slate-50 rounded-2xl pl-16 pr-6 border-2 border-transparent focus:border-emerald-400 focus:bg-white focus:outline-none transition-all font-bold text-slate-700"
+              />
+              {/* Search Results Dropdown */}
+              <AnimatePresence>
+                {query && results.length > 0 && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute top-full left-0 w-full mt-3 bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden z-[100] max-h-[400px] overflow-y-auto custom-scrollbar"
                   >
-                    <ShoppingBag size={24} className="text-orange-500" />
+                    {results.map((s) => (
+                      <button
+                        key={s.id}
+                        onClick={() => {
+                          setSelectedStudent(s);
+                          setQuery('');
+                        }}
+                        className="w-full p-4 flex items-center justify-between hover:bg-emerald-50 transition-colors border-b border-slate-50 last:border-0 text-left group"
+                      >
+                        <div className="flex items-center gap-4">
+                          <img src={s.photo_url} className="w-10 h-10 rounded-full bg-slate-100" alt="" />
+                          <div>
+                            <p className="font-black text-slate-800 text-sm group-hover:text-emerald-600 transition-colors">{s.name}</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase">Kelas {s.class} • Absen {s.absen}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-emerald-500 font-black">
+                          <span className="text-sm">{s.coins}</span>
+                          <Coins size={14} />
+                        </div>
+                      </button>
+                    ))}
                   </motion.div>
-                  <h1 className="text-2xl md:text-3xl font-black text-slate-800">Kantin Sehat</h1>
-                  <motion.span
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className="text-2xl"
-                  >🍏</motion.span>
-                </div>
-                <p className="text-sm font-medium text-slate-400 mt-0.5">Tukar koin prestasi dengan snack sehat!</p>
-              </div>
+                )}
+              </AnimatePresence>
             </div>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            
+            <button 
+              onClick={() => setShowAddItemModal(true)}
+              className="h-14 px-6 rounded-2xl bg-emerald-500 text-white font-black text-sm flex items-center gap-3 hover:bg-emerald-600 shadow-lg shadow-emerald-100 transition-all"
+            >
+              <PackagePlus size={20} />
+              <span className="hidden sm:inline">Tambah Barang</span>
+            </button>
+
+            <button 
               onClick={() => setShowHistory(!showHistory)}
-              className={`hidden md:flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm transition-all ${
-                showHistory
-                  ? 'bg-orange-500 text-white shadow-lg shadow-orange-200'
-                  : 'bg-orange-100 text-orange-600 hover:bg-orange-200'
+              className={`h-14 px-6 rounded-2xl font-black text-sm flex items-center gap-3 transition-all ${
+                showHistory ? 'bg-slate-800 text-white shadow-xl' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
               }`}
             >
-              <History size={16} />
-              Riwayat
-            </motion.button>
+              <History size={20} />
+              <span className="hidden sm:inline">Riwayat</span>
+            </button>
           </div>
-        </motion.div>
+        </div>
 
-        {/* Search Bar */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-lg shadow-orange-100/50 border-2 border-white/60"
-        >
-          <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
-            Cari Siswa
-          </label>
-          <div className="relative">
-            <motion.div
-              animate={{ scale: [1, 1.1, 1], rotate: [0, 10, -10, 0] }}
-              transition={{ duration: 4, repeat: Infinity }}
-              className="absolute left-5 top-1/2 -translate-y-1/2"
-            >
-              <Search size={20} className="text-orange-400" />
-            </motion.div>
-            <input
-              ref={inputRef}
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Ketik nama atau nomor absen..."
-              className="w-full h-14 bg-slate-50/80 rounded-2xl pl-14 pr-6 border-2 border-slate-100 focus:border-orange-400 focus:bg-white focus:outline-none font-bold text-slate-800 transition-all placeholder:text-slate-300"
-              id="kantin-search"
-            />
-            {query && (
-              <motion.button
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                onClick={() => setQuery('')}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-300 transition-colors"
-              >
-                <XCircle size={16} />
-              </motion.button>
-            )}
-          </div>
-
-          {/* Quick stats */}
-          <div className="mt-4 flex gap-3">
-            <div className="flex items-center gap-2 bg-amber-50 px-4 py-2 rounded-xl">
-              <Coins size={14} className="text-amber-500" />
-              <span className="text-xs font-bold text-amber-700">{students.reduce((a, s) => a + s.coins, 0)} total koin</span>
-            </div>
-            <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-xl">
-              <Sparkles size={14} className="text-blue-500" />
-              <span className="text-xs font-bold text-blue-700">{students.length} siswa aktif</span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Results / Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Student Cards */}
-          <div className={`${showHistory ? 'lg:col-span-2' : 'lg:col-span-3'} space-y-4`}>
-            <AnimatePresence mode="popLayout">
-              {query && results.length === 0 && (
+        <div className="grid grid-cols-12 gap-8">
+          {/* Main Store View */}
+          <div className={`${showHistory ? 'col-span-12 lg:col-span-8' : 'col-span-12'} space-y-8`}>
+            
+            {/* Selected Student Banner (If any) */}
+            <AnimatePresence>
+              {selectedStudent && (
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="bg-white/80 backdrop-blur-xl rounded-3xl p-12 text-center border-2 border-white/60"
+                  initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  animate={{ opacity: 1, height: 'auto', marginBottom: 32 }}
+                  exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  className="overflow-hidden"
                 >
-                  <div className="text-6xl mb-4">🔍</div>
-                  <h3 className="text-xl font-black text-slate-700 mb-2">Siswa Tidak Ditemukan</h3>
-                  <p className="text-slate-400 font-medium">Coba cari dengan nama atau nomor absen lain.</p>
+                  <div className="bg-emerald-500 rounded-[2.5rem] p-8 text-white shadow-xl shadow-emerald-200 flex flex-col md:flex-row items-center justify-between gap-6 relative">
+                    <div className="absolute top-0 right-0 w-32 h-full bg-white/10 skew-x-[-20deg] translate-x-10 pointer-events-none" />
+                    <div className="flex items-center gap-6 relative z-10">
+                      <div className="w-20 h-20 bg-white rounded-3xl p-1 shadow-2xl">
+                        <img src={selectedStudent.photo_url} className="w-full h-full rounded-2xl object-cover" alt="" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-80 mb-1">Siswa Terpilih</p>
+                        <h2 className="text-3xl font-black tracking-tight leading-none">{selectedStudent.name}</h2>
+                        <div className="flex items-center gap-4 mt-3">
+                          <span className="bg-white/20 px-3 py-1 rounded-full text-[10px] font-black uppercase">Absen {selectedStudent.absen}</span>
+                          <div className="flex items-center gap-2 font-black text-xl">
+                            <Coins size={20} className="text-amber-300" />
+                            {selectedStudent.coins} <span className="text-xs opacity-70">Koin</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => setSelectedStudent(null)}
+                      className="bg-white/10 hover:bg-white/20 p-4 rounded-2xl transition-colors relative z-10"
+                    >
+                      <X size={24} />
+                    </button>
+                  </div>
                 </motion.div>
               )}
-
-              {!query && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="bg-white/80 backdrop-blur-xl rounded-3xl p-12 text-center border-2 border-white/60"
-                >
-                  <motion.div
-                    animate={{ y: [0, -10, 0] }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                    className="text-7xl mb-4"
-                  >🏪</motion.div>
-                  <h3 className="text-xl font-black text-slate-700 mb-2">Selamat Datang di Kantin Sehat!</h3>
-                  <p className="text-slate-400 font-medium">Cari nama siswa untuk memulai transaksi.</p>
-                </motion.div>
-              )}
-
-              {results.map((student, idx) => (
-                <StudentCard
-                  key={student.id}
-                  student={student}
-                  index={idx}
-                  onExchange={handleExchange}
-                />
-              ))}
             </AnimatePresence>
+
+            {/* Product Catalog - THE TOKOPEDIA LOOK */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-black text-slate-800 flex items-center gap-3">
+                  <Tag className="text-emerald-500" size={24} />
+                  Katalog Produk Menarik
+                </h2>
+                <div className="flex gap-2">
+                  {['Semua', 'Alat Tulis', 'Makanan', 'Minuman'].map(cat => (
+                    <button key={cat} className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase transition-all ${cat === 'Semua' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-100' : 'bg-white text-slate-400 border border-slate-100 hover:border-emerald-200 hover:text-emerald-500'}`}>
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
+                {canteenItems.map((item, idx) => (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    whileHover={item.stock > 0 ? { y: -10 } : {}}
+                    className={`bg-white rounded-[2rem] overflow-hidden border-2 transition-all group flex flex-col h-full ${
+                      item.stock > 0 
+                      ? 'border-slate-50 hover:border-emerald-400 hover:shadow-2xl hover:shadow-emerald-100 cursor-pointer' 
+                      : 'border-slate-50 opacity-60 grayscale'
+                    }`}
+                    onClick={() => handleExchange(item)}
+                  >
+                    {/* Image Area */}
+                    <div className="aspect-square bg-slate-50/50 p-6 relative flex items-center justify-center overflow-hidden">
+                      <img 
+                        src={item.image || 'https://cdn-icons-png.flaticon.com/512/3067/3067451.png'} 
+                        className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" 
+                        alt={item.name} 
+                      />
+                      {item.stock === 0 && (
+                        <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center">
+                          <span className="bg-white/90 text-rose-600 text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest">Habis</span>
+                        </div>
+                      )}
+                      {/* Price Tag Overlay */}
+                      <div className="absolute top-4 right-4 bg-emerald-500 text-white font-black text-xs px-3 py-1.5 rounded-xl shadow-lg border border-white/20 z-20">
+                        {item.price}🪙
+                      </div>
+
+                      {/* Management Controls Overlay */}
+                      <div className="absolute inset-x-0 bottom-0 p-3 bg-white/40 backdrop-blur-md translate-y-full group-hover:translate-y-0 transition-transform flex gap-2 z-20">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); openEditModal(item); }}
+                          className="flex-1 h-10 bg-white/90 hover:bg-white rounded-xl flex items-center justify-center text-slate-600 hover:text-emerald-600 shadow-sm transition-all"
+                          title="Edit Barang"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button 
+                          onClick={(e) => handleDeleteItem(item.id, e)}
+                          className="flex-1 h-10 bg-white/90 hover:bg-rose-50 rounded-xl flex items-center justify-center text-slate-600 hover:text-rose-600 shadow-sm transition-all"
+                          title="Hapus Barang"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Product Info */}
+                    <div className="p-5 flex flex-col flex-1">
+                      <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest mb-1">{item.category}</p>
+                      <h4 className="text-xs font-black text-slate-700 leading-tight mb-3 line-clamp-2 h-8 group-hover:text-emerald-600 transition-colors">{item.name}</h4>
+                      
+                      <div className="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
+                        <div className="flex flex-col">
+                          <span className={`text-[9px] font-black uppercase ${item.stock > 0 ? 'text-emerald-500' : 'text-slate-400'}`}>
+                            {item.stock > 0 ? 'Ready Stock' : 'Kosong'}
+                          </span>
+                          <span className="text-[9px] font-bold text-slate-300">Sisa {item.stock}</span>
+                        </div>
+                        {item.stock > 0 && (
+                          <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-emerald-100 group-hover:scale-110 transition-transform">
+                            <ChevronRight size={16} />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Transaction History Panel */}
+          {/* Right Sidebar - History Panel */}
           <AnimatePresence>
             {showHistory && (
               <motion.div
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 50 }}
-                className="lg:col-span-1"
+                className="col-span-12 lg:col-span-4"
               >
-                <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-lg border-2 border-white/60 sticky top-6">
-                  <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <History size={14} />
-                    Riwayat Penukaran
-                  </h3>
-                  {recentLogs.length === 0 ? (
-                    <p className="text-sm text-slate-400 font-medium text-center py-6">Belum ada transaksi</p>
-                  ) : (
-                    <div className="space-y-3 max-h-[500px] overflow-y-auto">
-                      {recentLogs.map((log) => (
-                        <TransactionItem key={log.id} log={log} studentName={getStudentName(log.student_id)} />
-                      ))}
-                    </div>
-                  )}
+                <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-slate-100 sticky top-10">
+                  <div className="flex items-center justify-between mb-8">
+                    <h2 className="text-xl font-black text-slate-800 flex items-center gap-3">
+                      <History className="text-indigo-500" /> Transaksi Terbaru
+                    </h2>
+                    <button onClick={() => setShowHistory(false)} className="text-slate-300 hover:text-slate-600"><X size={20} /></button>
+                  </div>
+
+                  <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                    {transactionLogs.filter(l => l.amount < 0).slice(0, 15).map((log, i) => {
+                      const student = students.find(s => s.id === log.student_id);
+                      return (
+                        <motion.div
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.05 }}
+                          key={log.id}
+                          className="p-5 bg-slate-50 rounded-3xl border border-slate-100 flex items-center justify-between group hover:bg-emerald-50 hover:border-emerald-100 transition-all"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-2xl group-hover:scale-110 transition-transform">
+                              {log.description.includes('Pensil') ? '✏️' : 
+                               log.description.includes('Susu') ? '🥛' : 
+                               log.description.includes('Snack') ? '🍪' : '🎁'}
+                            </div>
+                            <div>
+                              <p className="text-sm font-black text-slate-700">{student?.name || 'Siswa'}</p>
+                              <p className="text-[10px] font-bold text-slate-400 line-clamp-1">{log.description}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-lg font-black text-emerald-600">{log.amount}</p>
+                            <p className="text-[8px] font-black text-slate-300 uppercase">
+                              {new Date(log.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                    {transactionLogs.filter(l => l.amount < 0).length === 0 && (
+                      <div className="text-center py-20 text-slate-300 italic font-bold">Belum ada transaksi</div>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
       </div>
-    </div>
-  );
-}
 
-function StudentCard({ student, index, onExchange }: StudentCardProps) {
-  const coinColor = student.coins >= 10
-    ? 'text-emerald-600 bg-emerald-50'
-    : student.coins >= 5
-    ? 'text-amber-600 bg-amber-50'
-    : 'text-rose-600 bg-rose-50';
-
-  return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 30, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ delay: index * 0.08 }}
-      className="bg-white/90 backdrop-blur-xl rounded-3xl p-6 shadow-lg shadow-orange-100/30 border-2 border-white/60 hover:shadow-xl transition-shadow"
-    >
-      <div className="flex items-center gap-5">
-        {/* Student Photo */}
-        <motion.div
-          whileHover={{ scale: 1.1, rotate: 5 }}
-          className="shrink-0"
-        >
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-orange-200 to-amber-100 p-1 shadow-md shadow-orange-100">
-            <img
-              src={student.photo_url}
-              alt={student.name}
-              className="w-full h-full rounded-xl object-cover bg-white"
+      {/* Add Item Modal */}
+      <AnimatePresence>
+        {showAddItemModal && (
+          <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowAddItemModal(false)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
             />
-          </div>
-        </motion.div>
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-xl bg-white rounded-[3rem] p-10 shadow-2xl overflow-hidden"
+            >
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="text-2xl font-black text-slate-800">
+                  {editingItem ? 'Edit Produk' : 'Tambah Produk Baru'}
+                </h3>
+                <button onClick={() => { setShowAddItemModal(false); resetForm(); }} className="text-slate-300 hover:text-slate-600 transition-colors"><X /></button>
+              </div>
 
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="bg-slate-100 px-2.5 py-0.5 rounded-full text-[10px] font-black text-slate-400 uppercase tracking-widest">
-              No. {student.absen}
-            </span>
-          </div>
-          <h3 className="text-xl font-black text-slate-800 truncate">{student.name}</h3>
-          <div className={`inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full font-black text-sm ${coinColor}`}>
-            <Coins size={14} />
-            {student.coins} Koin
-          </div>
-        </div>
+              <form onSubmit={handleAddItem} className="space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="col-span-2 space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Nama Barang</label>
+                    <input 
+                      type="text" 
+                      required
+                      value={newItem.name}
+                      onChange={e => setNewItem({...newItem, name: e.target.value})}
+                      placeholder="Contoh: Pensil Berwarna"
+                      className="w-full h-14 bg-slate-50 rounded-2xl px-6 border-2 border-transparent focus:border-emerald-400 focus:bg-white focus:outline-none transition-all font-bold" 
+                    />
+                  </div>
 
-        {/* Actions */}
-        <div className="shrink-0 flex flex-col gap-2">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onExchange(student, 5, 'Snack Sehat')}
-            className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-amber-400 to-orange-400 rounded-2xl text-white font-bold text-sm shadow-md shadow-amber-100 hover:shadow-lg hover:shadow-amber-200 transition-all"
-          >
-            <Cookie size={16} />
-            <span className="hidden sm:inline">Snack</span>
-            <span className="bg-white/25 px-2 py-0.5 rounded-full text-xs font-black">5🪙</span>
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onExchange(student, 10, 'Minuman Sehat')}
-            className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-sky-400 to-blue-500 rounded-2xl text-white font-bold text-sm shadow-md shadow-blue-100 hover:shadow-lg hover:shadow-blue-200 transition-all"
-          >
-            <CupSoda size={16} />
-            <span className="hidden sm:inline">Minum</span>
-            <span className="bg-white/25 px-2 py-0.5 rounded-full text-xs font-black">10🪙</span>
-          </motion.button>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Kategori</label>
+                    <select 
+                      value={newItem.category}
+                      onChange={e => setNewItem({...newItem, category: e.target.value})}
+                      className="w-full h-14 bg-slate-50 rounded-2xl px-6 border-2 border-transparent focus:border-emerald-400 focus:bg-white focus:outline-none transition-all font-bold"
+                    >
+                      <option>Alat Tulis</option>
+                      <option>Makanan</option>
+                      <option>Minuman</option>
+                      <option>Buku</option>
+                      <option>Lainnya</option>
+                    </select>
+                  </div>
 
-function TransactionItem({ log, studentName }: TransactionItemProps) {
-  const time = new Date(log.timestamp);
-  return (
-    <div className="flex items-start gap-3 p-3 bg-slate-50/80 rounded-xl">
-      <div className="w-8 h-8 bg-rose-100 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-        {log.description.includes('Snack') ? <Cookie size={14} className="text-rose-500" /> : <CupSoda size={14} className="text-blue-500" />}
-      </div>
-      <div className="min-w-0">
-        <p className="text-sm font-bold text-slate-700 truncate">{studentName}</p>
-        <p className="text-xs text-slate-400 font-medium">{log.description}</p>
-        <p className="text-[10px] text-slate-300 font-bold mt-0.5">
-          {time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-        </p>
-      </div>
-      <span className="text-sm font-black text-rose-500 shrink-0 ml-auto">{log.amount}</span>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Koin (Harga)</label>
+                    <input 
+                      type="number" 
+                      required
+                      value={newItem.price}
+                      onChange={e => setNewItem({...newItem, price: parseInt(e.target.value) || 0})}
+                      className="w-full h-14 bg-slate-50 rounded-2xl px-6 border-2 border-transparent focus:border-emerald-400 focus:bg-white focus:outline-none transition-all font-bold" 
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Stok Awal</label>
+                    <input 
+                      type="number" 
+                      required
+                      value={newItem.stock}
+                      onChange={e => setNewItem({...newItem, stock: parseInt(e.target.value) || 0})}
+                      className="w-full h-14 bg-slate-50 rounded-2xl px-6 border-2 border-transparent focus:border-emerald-400 focus:bg-white focus:outline-none transition-all font-bold" 
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">URL Foto Barang</label>
+                    <div className="relative">
+                      <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                      <input 
+                        type="url" 
+                        value={newItem.image}
+                        onChange={e => setNewItem({...newItem, image: e.target.value})}
+                        placeholder="https://..."
+                        className="w-full h-14 bg-slate-50 rounded-2xl pl-12 pr-6 border-2 border-transparent focus:border-emerald-400 focus:bg-white focus:outline-none transition-all font-bold" 
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 flex gap-4">
+                  <button 
+                    type="button"
+                    onClick={() => { setShowAddItemModal(false); resetForm(); }}
+                    className="flex-1 h-14 rounded-2xl font-black text-slate-400 hover:bg-slate-50 transition-all"
+                  >
+                    Batal
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`flex-[2] h-14 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl transition-all flex items-center justify-center gap-3 ${
+                      editingItem ? 'bg-indigo-500 hover:bg-indigo-600 shadow-indigo-100' : 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-100'
+                    }`}
+                  >
+                    {isSubmitting ? 'Menyimpan...' : (
+                      editingItem ? <><Edit2 size={20} /> Simpan Perubahan</> : <><Plus size={20} /> Simpan Barang</>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #e2e8f0;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #cbd5e1;
+        }
+      `}</style>
     </div>
   );
 }

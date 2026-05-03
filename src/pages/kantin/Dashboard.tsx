@@ -48,7 +48,7 @@ const KantinDashboard: React.FC = () => {
     }
   };
 
-  const handleTransaction = async (studentId: string, amount: number) => {
+  const handleTransaction = async (studentId: string, amount: number, itemName: string) => {
     if (selectedStudent.coins < amount) {
       alert('Saldo koin tidak cukup!');
       return;
@@ -67,7 +67,7 @@ const KantinDashboard: React.FC = () => {
         student_id: studentId,
         amount: amount,
         type: 'redeem',
-        description: `Penukaran di Kantin (${amount} Koin)`,
+        description: `Tukar ${itemName} (${amount} Koin)`,
         created_at: serverTimestamp()
       });
 
@@ -227,23 +227,43 @@ const KantinDashboard: React.FC = () => {
                     <Coins size={16} /> {selectedStudent.coins} Koin Tersedia
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 w-full mt-8">
-                    <button 
-                      onClick={() => handleTransaction(selectedStudent.id, 5)}
-                      disabled={processing || selectedStudent.coins < 5}
-                      className="group p-6 bg-slate-50 hover:bg-amber-400 border-2 border-slate-100 hover:border-amber-400 rounded-3xl transition-all disabled:opacity-50"
-                    >
-                      <p className="text-3xl font-black text-slate-800 group-hover:text-white mb-1">5</p>
-                      <p className="text-[10px] font-black uppercase text-slate-400 group-hover:text-amber-100">Koin</p>
-                    </button>
-                    <button 
-                      onClick={() => handleTransaction(selectedStudent.id, 10)}
-                      disabled={processing || selectedStudent.coins < 10}
-                      className="group p-6 bg-slate-50 hover:bg-amber-400 border-2 border-slate-100 hover:border-amber-400 rounded-3xl transition-all disabled:opacity-50"
-                    >
-                      <p className="text-3xl font-black text-slate-800 group-hover:text-white mb-1">10</p>
-                      <p className="text-[10px] font-black uppercase text-slate-400 group-hover:text-amber-100">Koin</p>
-                    </button>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full mt-8">
+                    {[
+                      { name: 'Pensil', icon: '✏️', price: 2, stock: 15, image: 'https://cdn-icons-png.flaticon.com/512/588/588395.png' },
+                      { name: 'Penghapus', icon: '🧹', price: 2, stock: 10, image: 'https://cdn-icons-png.flaticon.com/512/2619/2619313.png' },
+                      { name: 'Penggaris', icon: '📏', price: 3, stock: 5, image: 'https://cdn-icons-png.flaticon.com/512/2965/2965223.png' },
+                      { name: 'Rautan', icon: '⚙️', price: 3, stock: 0, image: 'https://cdn-icons-png.flaticon.com/512/3067/3067451.png' },
+                      { name: 'Buku', icon: '📓', price: 5, stock: 20, image: 'https://cdn-icons-png.flaticon.com/512/3389/3389152.png' },
+                      { name: 'Snack Sehat', icon: '🍪', price: 5, stock: 12, image: 'https://cdn-icons-png.flaticon.com/512/2553/2553691.png' },
+                      { name: 'Kotak Pensil', icon: '👝', price: 8, stock: 3, image: 'https://cdn-icons-png.flaticon.com/512/3067/3067512.png' },
+                      { name: 'Susu Kotak', icon: '🥛', price: 10, stock: 8, image: 'https://cdn-icons-png.flaticon.com/512/2405/2405479.png' },
+                    ].map((item) => (
+                      <button 
+                        key={item.name}
+                        onClick={() => item.stock > 0 && handleTransaction(selectedStudent.id, item.price, item.name)}
+                        disabled={processing || selectedStudent.coins < item.price || item.stock === 0}
+                        className={`group p-3 bg-slate-50 rounded-2xl border-2 transition-all flex flex-col items-center text-center ${
+                          item.stock > 0 
+                            ? 'border-transparent hover:border-amber-400 hover:bg-white hover:shadow-xl' 
+                            : 'opacity-50 grayscale cursor-not-allowed'
+                        }`}
+                      >
+                        <div className="w-full aspect-square bg-white rounded-xl mb-2 p-3 overflow-hidden flex items-center justify-center">
+                          <img src={item.image} alt={item.name} className="w-full h-full object-contain group-hover:scale-110 transition-transform" />
+                        </div>
+                        <p className="text-[10px] font-black text-slate-800 leading-tight mb-1 line-clamp-1">{item.name}</p>
+                        <div className="flex items-center gap-1 mb-2">
+                          <Coins size={10} className="text-amber-500" />
+                          <span className="text-xs font-black text-amber-600">{item.price}</span>
+                        </div>
+                        <div className="w-full pt-1.5 border-t border-slate-100 flex items-center justify-between">
+                          <span className={`text-[8px] font-black uppercase ${item.stock > 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                            {item.stock > 0 ? 'Ready' : 'Habis'}
+                          </span>
+                          <span className="text-[8px] font-bold text-slate-400">{item.stock}</span>
+                        </div>
+                      </button>
+                    ))}
                   </div>
                   
                   {processing && (

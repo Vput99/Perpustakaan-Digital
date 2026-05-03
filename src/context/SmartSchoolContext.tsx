@@ -25,6 +25,9 @@ interface SmartSchoolState {
   refreshData: () => Promise<void>;
   searchStudents: (query: string) => Student[];
   updateStudentCoins: (studentId: string, amount: number, description?: string) => Promise<boolean>;
+  showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+  showConfirm: (title: string, message: string) => Promise<boolean>;
+  toasts: any[];
 }
 
 const SmartSchoolContext = createContext<SmartSchoolState | null>(null);
@@ -33,7 +36,23 @@ export function SmartSchoolProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<any | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [transactionLogs, setTransactionLogs] = useState<TransactionLog[]>([]);
+  const [toasts, setToasts] = useState<any[]>([]);
+  const [confirmConfig, setConfirmConfig] = useState<{ title: string; message: string; resolve: (val: boolean) => void } | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    const id = Math.random().toString(36).substring(2, 9);
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4000);
+  }, []);
+
+  const showConfirm = useCallback((title: string, message: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      setConfirmConfig({ title, message, resolve });
+    });
+  }, []);
 
   const fetchData = useCallback(async () => {
     const user = auth.currentUser;
@@ -168,6 +187,11 @@ export function SmartSchoolProvider({ children }: { children: ReactNode }) {
       refreshData: fetchData,
       searchStudents,
       updateStudentCoins,
+      showToast,
+      showConfirm,
+      toasts,
+      confirmConfig,
+      setConfirmConfig
     }}>
       {children}
     </SmartSchoolContext.Provider>
