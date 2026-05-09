@@ -29,7 +29,7 @@ export default function AdminView() {
   const [studentQuests, setStudentQuests] = useState<any[]>([]);
   const [studentCerts, setStudentCerts] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
-  const [activeDetailTab, setActiveDetailTab] = useState<'riwayat' | 'misi'>('riwayat');
+  const [activeDetailTab, setActiveDetailTab] = useState<'riwayat' | 'misi' | 'biodata'>('riwayat');
   const [showToast, setShowToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
 
   const handleAssignMission = async (title: string, reward: number, icon: string) => {
@@ -110,14 +110,9 @@ export default function AdminView() {
   }
 
   return (
-    <div 
-      className="min-h-screen p-6 md:p-12 relative overflow-hidden font-nunito bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: 'url("/Background Guru.png")' }}
-    >
-      {/* 3D Background Elements - Overlay to enhance the image */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        {/* Subtle Darkening Overlay if needed */}
-        <div className="absolute inset-0 bg-white/10" />
+    <div className="min-h-screen p-6 md:p-12 relative overflow-hidden font-pixel-body pixel-adventure-bg">
+      {/* Dark Overlay for Depth */}
+      <div className="absolute inset-0 bg-white/5 pointer-events-none z-0" />
 
         {/* 3D Assets Mockup (Floating Icons) */}
         <motion.div 
@@ -151,7 +146,6 @@ export default function AdminView() {
         >
           <SendHorizonal size={100} />
         </motion.div>
-      </div>
 
       {/* Toast Notification */}
       <AnimatePresence>
@@ -168,68 +162,60 @@ export default function AdminView() {
       </AnimatePresence>
 
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* Main Glass Panel with 3D Depth */}
-        <div className="bg-white/40 backdrop-blur-3xl rounded-[3rem] border border-white/50 shadow-[0_40px_100px_-12px_rgba(0,0,0,0.15)] overflow-hidden p-8 md:p-10 space-y-8">
+        {/* Main Pixel Panel */}
+        <div className="pixel-panel p-8 md:p-10 space-y-8 shadow-2xl">
           
-          {/* Header Row - 3D Container */}
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-6 bg-white/70 p-6 rounded-[2.5rem] shadow-[0_15px_30px_-5px_rgba(0,0,0,0.05)] border border-white/80">
-            <div className="flex items-center gap-5">
-              <div className="h-16 w-16 rounded-[1.5rem] bg-[#FCE8E8] text-[#E15A5A] flex items-center justify-center shadow-[0_8px_0_0_#E15A5A20,0_15px_30px_-5px_#E15A5A30] border-b-4 border-[#E15A5A10]">
-                <ShieldAlert size={32} />
+          {/* Header Row - Pixel Header */}
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-6 pixel-panel-blue p-8 shadow-xl">
+            <div className="flex items-center gap-6">
+              <div className="h-16 w-16 bg-white/10 flex items-center justify-center shadow-lg border-2 border-white/20">
+                <ShieldAlert size={32} className="text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-black text-[#2D3748] tracking-tight">
-                  {teacherClass ? `Dashboard Guru Kelas ${teacherClass}` : 'Dashboard Admin'}
+                <h1 className="text-lg pixel-font-header pixel-text-yellow leading-relaxed">
+                  {teacherClass ? `MASTER GURU: KLS ${teacherClass}` : 'COMMAND CENTER PIXEL'}
                 </h1>
-                <p className="text-sm font-bold text-[#718096]">
-                  {teacherClass ? `Mengelola siswa Kelas ${teacherClass}` : 'Pantau semua siswa dan berikan misi'}
+                <p className="text-[10px] font-bold text-white uppercase tracking-widest mt-2 font-pixel">
+                  {teacherClass ? `Sektor Terpantau` : 'Level: Admin Tertinggi'}
                 </p>
               </div>
             </div>
 
             <div className="flex flex-wrap justify-center gap-5">
-              {/* 3D Purple Button */}
               <motion.button 
-                whileHover={{ y: -2 }}
-                whileTap={{ y: 8, boxShadow: 'none' }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setView('create_mission')}
-                className="flex items-center gap-3 px-8 py-4 bg-[#5436D6] text-white rounded-[1.5rem] font-black transition-all shadow-[0_10px_0_0_#3B22A8,0_20px_30px_-10px_rgba(84,54,214,0.4)] border-b-2 border-[#FFFFFF20]"
+                className="pixel-button-green"
               >
-                <Plus size={22} />
-                Buat Misi Baru
+                + MISI BARU
               </motion.button>
 
-              {/* 3D Orange Button */}
               <motion.button 
-                whileHover={{ y: -2 }}
-                whileTap={{ y: 8, boxShadow: 'none' }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setView('kantin')}
-                className="flex items-center gap-3 px-8 py-4 bg-[#E8833A] text-white rounded-[1.5rem] font-black transition-all shadow-[0_10px_0_0_#B86228,0_20px_30px_-10px_rgba(232,131,58,0.4)] border-b-2 border-[#FFFFFF20]"
+                className="pixel-button-green"
               >
-                <ShoppingBag size={22} />
-                Buka Kantin Sehat
+                🏪 KANTIN
               </motion.button>
 
-              {/* 3D Blue Button for Withdraw */}
               <motion.button 
-                whileHover={{ y: -2 }}
-                whileTap={{ y: 8, boxShadow: 'none' }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => navigate('/admin/withdraw')}
-                className="flex items-center gap-3 px-8 py-4 bg-[#3182CE] text-white rounded-[1.5rem] font-black transition-all shadow-[0_10px_0_0_#2A69AC,0_20px_30px_-10px_rgba(49,130,206,0.4)] border-b-2 border-[#FFFFFF20]"
+                className="pixel-button-green"
               >
-                <Banknote size={22} />
-                Withdraw Koin
+                💰 WITHDRAW
               </motion.button>
 
-              {/* 3D Logout Button */}
               <motion.button 
-                whileHover={{ y: -2 }}
-                whileTap={{ y: 6, boxShadow: 'none' }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleLogout}
-                className="flex items-center gap-3 px-8 py-4 bg-white text-[#4A5568] rounded-[1.5rem] font-black transition-all border border-[#E2E8F0] shadow-[0_8px_0_0_#EDF2F7,0_15px_20px_-5px_rgba(0,0,0,0.05)]"
+                className="pixel-button-red"
               >
-                <LogOut size={22} />
-                Keluar
+                🔴 OFF
               </motion.button>
             </div>
           </div>
@@ -239,17 +225,17 @@ export default function AdminView() {
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="lg:col-span-8 bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] flex flex-col min-h-[500px]"
+              className="lg:col-span-8 pixel-panel p-8 shadow-xl flex flex-col min-h-[500px]"
             >
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-black text-[#2D3748] flex items-center gap-3">
-                  <Users className="text-[#4299E1]" size={28} /> Data Siswa {teacherClass ? `Kelas ${teacherClass}` : ''}
+                <h2 className="text-sm pixel-font-header text-slate-800 flex items-center gap-3">
+                  <Users size={24} /> DAFTAR PETUALANG
                 </h2>
                 {!teacherClass && (
-                  <div className="flex bg-[#EDF2F7] p-1.5 rounded-full shadow-inner">
+                  <div className="flex bg-white/5 p-1.5 rounded-full shadow-inner border border-white/10">
                     <button
                       onClick={() => setSelectedClass(null)}
-                      className={`px-4 py-2 rounded-full text-xs font-black transition-all ${!selectedClass ? 'bg-white text-[#3182CE] shadow-md' : 'text-[#A0AEC0]'}`}
+                      className={`px-4 py-2 rounded-full text-[10px] font-black transition-all font-scifi ${!selectedClass ? 'bg-blue-600 text-white shadow-lg' : 'text-white/40'}`}
                     >
                       SEMUA
                     </button>
@@ -257,7 +243,7 @@ export default function AdminView() {
                       <button
                         key={c}
                         onClick={() => setSelectedClass(c)}
-                        className={`px-4 py-2 rounded-full text-xs font-black transition-all ${selectedClass === c ? 'bg-white text-[#3182CE] shadow-md' : 'text-[#A0AEC0]'}`}
+                        className={`px-4 py-2 rounded-full text-[10px] font-black transition-all font-scifi ${selectedClass === c ? 'bg-blue-600 text-white shadow-lg' : 'text-white/40'}`}
                       >
                         KLS {c}
                       </button>
@@ -276,7 +262,7 @@ export default function AdminView() {
                         onClick={() => setSelectedStudent(student)}
                         whileHover={{ scale: 1.01, x: 8 }}
                         whileTap={{ scale: 0.98 }}
-                        className={`flex items-center justify-between p-5 rounded-[2rem] border transition-all cursor-pointer ${selectedStudent?.id === student.id ? 'bg-[#EBF8FF] border-[#BEE3F8] shadow-[0_12px_0_0_#BEE3F8,0_20px_30px_-10px_rgba(66,153,225,0.2)] -translate-y-1' : 'bg-white border-white/80 hover:bg-white hover:shadow-[0_15px_30px_-10px_rgba(0,0,0,0.1)] hover:-translate-y-1'}`}
+                        className={`flex items-center justify-between p-5 transition-all cursor-pointer ${selectedStudent?.id === student.id ? 'pixel-panel-blue scale-[1.02]' : 'pixel-panel opacity-90 hover:opacity-100 hover:scale-[1.01]'}`}
                       >
                         <div className="flex items-center gap-5">
                           <div className="relative">
@@ -288,21 +274,21 @@ export default function AdminView() {
                             <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#48BB78] border-4 border-[#EBF8FF] rounded-full" />
                           </div>
                           <div>
-                            <h3 className="font-black text-[#2D3748] text-xl leading-tight">{student.full_name || student.name}</h3>
+                            <h3 className={`font-bold text-lg leading-tight pixel-font-body ${selectedStudent?.id === student.id ? 'text-white' : 'text-slate-900'}`}>{student.full_name || student.name}</h3>
                             <div className="flex items-center gap-2 mt-1">
-                              <span className="px-3 py-1 bg-[#EDF2F7] rounded-lg text-[10px] font-black text-[#718096] uppercase tracking-widest">NISN: {student.nisn || student.id.slice(0, 8)}</span>
-                              <span className="text-[10px] font-black text-[#48BB78] uppercase tracking-widest">AKTIF</span>
+                              <span className="px-3 py-1 bg-black/5 rounded-lg text-[10px] font-bold text-slate-500 uppercase tracking-widest pixel-font-body">LVL {student.class}</span>
+                              <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest pixel-font-body">ONLINE</span>
                             </div>
                           </div>
                         </div>
                         <div className="text-right flex items-center gap-4">
-                          <div className="px-5 py-2.5 bg-white rounded-2xl shadow-sm border border-slate-50">
-                            <div className="flex items-center gap-1.5 text-[#D69E2E] font-black">
-                              <span className="text-2xl tracking-tighter">{student.coins || 0}</span>
-                              <span className="text-xs">KOIN</span>
+                          <div className="px-5 py-2.5 bg-black/10 rounded-xl shadow-inner border border-black/5">
+                            <div className="flex items-center gap-2 text-amber-600 font-bold pixel-font-body">
+                              <span className="text-2xl">{student.coins || 0}</span>
+                              <span className="text-[10px] font-pixel">GP</span>
                             </div>
                           </div>
-                          <ChevronRight size={24} className="text-[#CBD5E0]" />
+                          <ChevronRight size={24} className={selectedStudent?.id === student.id ? 'text-white' : 'text-slate-400'} />
                         </div>
                       </motion.div>
                     ))}
@@ -324,45 +310,48 @@ export default function AdminView() {
                 {selectedStudent ? (
                   <motion.div
                     key="history"
-                    initial={{ opacity: 0, x: 30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 30 }}
-                    className="bg-[#EDFDFD]/90 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white shadow-[0_25px_50px_-12px_rgba(0,0,0,0.1)] flex-1 flex flex-col"
+                    className="pixel-panel p-8 shadow-xl flex-1 flex flex-col"
                   >
                     <div className="flex items-center justify-between mb-6">
-                      <div className="flex bg-white/50 p-1 rounded-2xl border border-[#B2F5EA]">
+                      <div className="flex bg-black/5 p-1 rounded-2xl border border-black/10">
                         <button
                           onClick={() => setActiveDetailTab('riwayat')}
-                          className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${activeDetailTab === 'riwayat' ? 'bg-[#319795] text-white shadow-lg' : 'text-[#319795] hover:bg-white/50'}`}
+                          className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all font-pixel ${activeDetailTab === 'riwayat' ? 'bg-amber-600 text-white shadow-lg' : 'text-slate-400'}`}
                         >
                           RIWAYAT
                         </button>
                         <button
                           onClick={() => setActiveDetailTab('misi')}
-                          className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${activeDetailTab === 'misi' ? 'bg-[#319795] text-white shadow-lg' : 'text-[#319795] hover:bg-white/50'}`}
+                          className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all font-pixel ${activeDetailTab === 'misi' ? 'bg-amber-600 text-white shadow-lg' : 'text-slate-400'}`}
                         >
-                          MISI & TUGAS
+                          MISI
+                        </button>
+                        <button
+                          onClick={() => setActiveDetailTab('biodata')}
+                          className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all font-pixel ${activeDetailTab === 'biodata' ? 'bg-amber-600 text-white shadow-lg' : 'text-slate-400'}`}
+                        >
+                          BIODATA
                         </button>
                       </div>
                       <motion.button 
                         whileHover={{ scale: 1.1, rotate: 90 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={() => setSelectedStudent(null)} 
-                        className="p-2.5 bg-white rounded-xl text-[#319795] shadow-md border border-[#B2F5EA] transition-all"
+                        className="p-2.5 bg-black/5 rounded-xl text-slate-900 shadow-md border border-black/10 transition-all"
                       >
                         <X size={20} />
                       </motion.button>
                     </div>
 
-                    <div className="bg-white/80 p-5 rounded-[1.8rem] border border-[#B2F5EA] mb-6 shadow-md flex items-center gap-4">
+                    <div className="bg-black/5 p-5 rounded-[1.8rem] border border-black/10 mb-6 shadow-md flex items-center gap-4">
                       <img 
                         src={selectedStudent.photo_url || `https://api.dicebear.com/7.x/adventurer/svg?seed=${selectedStudent.full_name}`} 
                         alt="avatar" 
                         className="w-12 h-12 rounded-xl bg-white border border-slate-100" 
                       />
                       <div>
-                        <p className="text-[10px] font-black text-[#319795] uppercase tracking-widest mb-0.5">SISWA TERPILIH</p>
-                        <p className="text-xl font-black text-[#234E52] leading-tight">{selectedStudent.full_name || selectedStudent.name}</p>
+                        <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-0.5 font-pixel">PETUALANG</p>
+                        <p className="text-xl font-bold text-slate-900 leading-tight pixel-font-body">{selectedStudent.full_name || selectedStudent.name}</p>
                       </div>
                     </div>
 
@@ -379,14 +368,14 @@ export default function AdminView() {
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: i * 0.05 }}
                               key={i} 
-                              className="p-5 bg-white border border-white rounded-[1.5rem] flex items-center gap-5 shadow-[0_4px_0_0_#E6FFFA,0_8px_15px_-5px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_0_0_#E6FFFA,0_12px_20px_-5px_rgba(0,0,0,0.08)] transition-all group"
+                              className="p-5 bg-white/5 border border-white/10 rounded-[1.5rem] flex items-center gap-5 shadow-lg group"
                             >
-                              <div className="w-12 h-12 bg-[#E6FFFA] text-[#319795] rounded-2xl flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform">
+                              <div className="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-2xl flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform">
                                 <BookOpen size={22} />
                               </div>
                               <div className="min-w-0">
-                                <p className="font-black text-[#234E52] text-base truncate leading-tight">{h.book_title}</p>
-                                <div className="flex items-center gap-2 text-[10px] text-[#4FD1C5] font-black mt-1.5 uppercase">
+                                <p className="font-bold text-slate-900 text-base truncate leading-tight font-outfit">{h.book_title}</p>
+                                <div className="flex items-center gap-2 text-[10px] scifi-text-cyan font-black mt-1.5 uppercase font-scifi">
                                   <Clock size={12} /> {new Date(h.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
                                 </div>
                               </div>
@@ -398,6 +387,50 @@ export default function AdminView() {
                             <p className="text-lg font-black italic">Belum ada riwayat.</p>
                           </div>
                         )
+                      ) : activeDetailTab === 'biodata' ? (
+                        <motion.div 
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="space-y-6"
+                        >
+                          <div className="pixel-panel-blue p-6 shadow-xl space-y-4">
+                            <h3 className="text-xs font-bold text-white uppercase tracking-[0.2em] mb-4 flex items-center gap-2 font-pixel">
+                              <ShieldAlert size={14} /> IDENTITAS GILD
+                            </h3>
+                            
+                            <div className="space-y-4">
+                              <div className="bg-black/5 p-3 rounded-xl border border-black/5">
+                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 font-scifi">Nama Lengkap</p>
+                                <p className="text-sm font-bold text-slate-900 font-outfit">{selectedStudent.full_name || selectedStudent.name}</p>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-black/5 p-3 rounded-xl border border-black/5">
+                                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 font-scifi">NISN</p>
+                                  <p className="text-sm font-bold text-slate-900 font-scifi">{selectedStudent.nisn || '-'}</p>
+                                </div>
+                                <div className="bg-black/5 p-3 rounded-xl border border-black/5">
+                                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 font-scifi">Kelas</p>
+                                  <p className="text-sm font-bold text-slate-900 font-scifi">{selectedStudent.class}</p>
+                                </div>
+                              </div>
+
+                              <div className="bg-black/5 p-3 rounded-xl border border-black/5">
+                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 font-scifi">Alamat Rumah</p>
+                                <p className="text-sm font-bold text-slate-900 leading-relaxed font-outfit">{selectedStudent.address || 'Alamat belum diatur'}</p>
+                              </div>
+
+                              <div className="bg-black/5 p-3 rounded-xl border border-black/5">
+                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 font-scifi">No. Telp Orang Tua/Wali</p>
+                                <p className="text-sm font-bold text-slate-900 font-scifi">{selectedStudent.parent_phone || '-'}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="p-5 border border-white/10 rounded-[2rem] bg-white/5 text-center">
+                            <p className="text-[10px] font-bold text-white/30 italic">Data ini sinkron dengan pangkalan data sekolah</p>
+                          </div>
+                        </motion.div>
                       ) : (
                         <div className="space-y-6">
                           {/* Section: Earned Certificates */}
@@ -465,14 +498,10 @@ export default function AdminView() {
                   </motion.div>
                 ) : (
                   <motion.div
-                    key="missions"
-                    initial={{ opacity: 0, x: 30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 30 }}
-                    className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white shadow-[0_25px_50px_-12px_rgba(0,0,0,0.1)] flex-1 flex flex-col"
+                    className="scifi-panel-glass p-8 shadow-2xl flex-1 flex flex-col"
                   >
-                    <h2 className="text-2xl font-black text-[#2D3748] flex items-center gap-3 mb-8">
-                      <ListChecks className="text-[#5436D6]" size={28} /> Berikan Misi
+                    <h2 className="text-xl scifi-text-header scifi-text-cyan flex items-center gap-3 mb-8">
+                      <ListChecks className="text-[#00f2ff]" size={28} /> Berikan Misi
                     </h2>
 
                     <div className="space-y-6">

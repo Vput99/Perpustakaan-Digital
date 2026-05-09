@@ -1,15 +1,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;600;800;900&family=Press+Start+2P&family=VT323&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-nunito: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  --font-outfit: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-scifi: "Orbitron", sans-serif;
+  --font-pixel: "Press Start 2P", cursive;
+  --font-pixel-body: "VT323", monospace;
   --font-cursive: "Great Vibes", cursive;
 }
 
 @layer base {
   body {
-    font-family: var(--font-nunito);
+    font-family: var(--font-outfit);
     @apply bg-slate-50 text-slate-900 antialiased;
   }
 }
@@ -72,4 +77,96 @@
     display: none !important;
     visibility: hidden !important;
   }
+}
+
+/* Scifi UI Utility Classes - Removed as part of theme migration */
+
+/* Pixel Adventure UI Utility Classes */
+
+/* Pixel Adventure UI Utility Classes */
+.pixel-panel {
+  image-rendering: pixelated;
+  border-image: url('/kenney_ui-pack-pixel-adventure/Tiles/Large tiles/Thick outline/tile_0000.png') 10 fill;
+  border-width: 10px;
+  background: #fdf6d8;
+  color: #3e2731;
+}
+
+.pixel-panel-brown {
+  image-rendering: pixelated;
+  border-image: url('/kenney_ui-pack-pixel-adventure/Tiles/Large tiles/Thick outline/tile_0001.png') 10 fill;
+  border-width: 10px;
+  background: #8e5252;
+  color: #fff;
+}
+
+.pixel-panel-blue {
+  image-rendering: pixelated;
+  border-image: url('/kenney_ui-pack-pixel-adventure/Tiles/Large tiles/Thick outline/tile_0002.png') 10 fill;
+  border-width: 10px;
+  background: #4b80ca;
+  color: #fff;
+}
+
+.pixel-button-red {
+  image-rendering: pixelated;
+  background-image: url('/kenney_ui-pack-pixel-adventure/Tiles/Large tiles/Thick outline/tile_0043.png');
+  background-size: 100% 100%;
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  color: white;
+  @apply px-4 py-2 transition-transform active:translate-y-1;
+}
+
+.pixel-button-green {
+  image-rendering: pixelated;
+  background-image: url('/kenney_ui-pack-pixel-adventure/Tiles/Large tiles/Thick outline/tile_0041.png');
+  background-size: 100% 100%;
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  color: white;
+  @apply px-4 py-2 transition-transform active:translate-y-1;
+}
+
+.pixel-text-yellow {
+  color: #f7e476;
+  text-shadow: 2px 2px #3e2731;
+}
+
+.pixel-text-white {
+  color: white;
+  text-shadow: 2px 2px #3e2731;
+}
+
+.pixel-font-header {
+  font-family: var(--font-pixel);
+  @apply tracking-tight uppercase;
+}
+
+.pixel-font-body {
+  font-family: var(--font-pixel-body);
+  @apply text-lg;
+}
+
+.pixel-adventure-bg {
+  background: 
+    linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+    url('https://images.wallpapersden.com/image/download/pixel-art-landscape-scenery_bWhmZmiUmZqaraWkpJRmbmdlrWZnZ2U.jpg') no-repeat center center fixed;
+  background-size: cover;
+  image-rendering: auto;
+}
+
+/* Add a subtle scanline effect for that retro feel */
+.pixel-adventure-bg::after {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  z-index: 2;
+  background-size: 100% 4px, 3px 100%;
+  pointer-events: none;
 }

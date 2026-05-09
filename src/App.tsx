@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { SmartSchoolProvider } from './context/SmartSchoolContext';
-import Login from './pages/Login';
+import NewLandingPage from './pages/NewLandingPage';
 import LibraryPage from './pages/Library';
 import StudentDashboard from './pages/student/Dashboard';
 import KantinDashboard from './pages/kantin/Dashboard';
@@ -17,8 +17,9 @@ export default function App() {
       <GlobalConfirm />
       <Routes>
         {/* Public Routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/" element={<LibraryPage />} />
+        <Route path="/login" element={<NewLandingPage />} />
+        <Route path="/" element={<NewLandingPage />} />
+        <Route path="/library" element={<LibraryPage />} />
 
         {/* Protected Student Routes */}
         <Route 

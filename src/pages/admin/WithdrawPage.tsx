@@ -120,39 +120,43 @@ export default function WithdrawPage() {
   };
 
   return (
-    <div className="min-h-screen relative font-nunito text-slate-800 overflow-x-hidden bg-slate-900">
-      {/* Dynamic Background Elements */}
-      <div className="fixed inset-0 z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 blur-[120px] rounded-full animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-600/20 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20" />
-      </div>
+    <div 
+      className="min-h-screen relative font-pixel-body text-slate-800 overflow-x-hidden bg-fixed bg-cover bg-center"
+      style={{ backgroundImage: "url('/pixel_adventure_bg_1777815985861.png')" }}
+    >
+      {/* Dark Overlay */}
+      <div className="absolute inset-0 bg-white/5 pointer-events-none z-0" />
 
       <div className="relative z-10 flex min-h-screen">
         {/* Slim Sidebar */}
         <motion.aside 
           initial={{ x: -100 }}
           animate={{ x: 0 }}
-          className="w-24 hidden md:flex flex-col items-center py-10 gap-10 bg-white/5 backdrop-blur-3xl border-r border-white/10"
+          className="w-24 hidden md:flex flex-col items-center py-10 gap-10 bg-white border-r border-slate-200 shadow-xl"
         >
-          <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-[1.2rem] flex items-center justify-center text-white shadow-xl shadow-blue-500/20">
+          <div className="w-14 h-14 bg-slate-50 flex items-center justify-center text-slate-900 shadow-lg border-2 border-slate-100 p-2">
             <ShieldCheck size={32} />
           </div>
           <nav className="flex flex-col gap-8 mt-10">
-            <button onClick={() => navigate('/admin')} className="p-4 rounded-2xl text-white/40 hover:text-white hover:bg-white/10 transition-all group relative">
+            <button 
+              onClick={() => navigate('/admin')} 
+              className="w-14 h-14 flex items-center justify-center rounded-2xl text-slate-400 hover:text-slate-900 transition-all group relative"
+            >
               <Users size={28} />
-              <span className="absolute left-full ml-4 px-3 py-1.5 bg-slate-800 text-white text-[10px] font-black rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-all whitespace-nowrap z-50">Dashboard Guru</span>
+              <span className="absolute left-full ml-4 px-3 py-1.5 scifi-panel-blue text-slate-900 text-[10px] font-black rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-all whitespace-nowrap z-50">Dashboard</span>
             </button>
-            <button className="p-4 rounded-2xl bg-white/10 text-white shadow-lg shadow-black/20 ring-1 ring-white/20">
-              <Banknote size={28} />
-            </button>
-            <button onClick={() => navigate('/')} className="p-4 rounded-2xl text-white/40 hover:text-white hover:bg-white/10 transition-all group relative">
-              <Search size={28} />
-              <span className="absolute left-full ml-4 px-3 py-1.5 bg-slate-800 text-white text-[10px] font-black rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-all whitespace-nowrap z-50">Cari Buku</span>
+            <button 
+              className="w-14 h-14 flex items-center justify-center text-slate-900 shadow-lg"
+              style={{ backgroundImage: "url('/kenney_ui-pack-pixel-adventure/Tiles/Large tiles/Thick outline/tile_0002.png')", backgroundSize: '100% 100%' }}
+            >
+              <Banknote size={28} className="text-white" />
             </button>
           </nav>
-          <button onClick={handleLogout} className="p-4 rounded-2xl text-rose-400/60 hover:text-rose-400 hover:bg-rose-400/10 transition-all mt-auto">
-            <LogOut size={28} />
+          <button 
+            onClick={handleLogout} 
+            className="w-14 h-14 flex items-center justify-center scifi-button-red text-white transition-all mt-auto"
+          >
+            <LogOut size={24} />
           </button>
         </motion.aside>
 
@@ -164,23 +168,23 @@ export default function WithdrawPage() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <h1 className="text-5xl font-black text-white tracking-tighter mb-3 drop-shadow-md">
-                Pusat Withdraw <span className="text-blue-400">Koin</span>
+              <h1 className="text-2xl pixel-font-header text-slate-900 mb-3 drop-shadow-sm">
+                MASTER EXCHANGE <span className="text-amber-600">GP</span>
               </h1>
-              <p className="text-blue-200/60 font-black uppercase tracking-[0.3em] text-[10px]">
-                Admin Master Control • SD Negeri Tempurejo 1
+              <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] pixel-font-body">
+                Sistem Otorisasi Transaksi • Merchant Gild
               </p>
             </motion.div>
 
             <motion.div 
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="flex items-center gap-6 bg-white/5 backdrop-blur-2xl px-8 py-5 rounded-[2.5rem] border border-white/10 shadow-2xl"
+              className="flex items-center gap-6 pixel-panel-blue px-10 py-5 shadow-xl"
             >
               <div className="text-right">
-                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest leading-none mb-1">Total Saldo Siswa</p>
+                <p className="text-[10px] font-bold text-white/70 uppercase tracking-widest leading-none mb-1 pixel-font-body">Total Saldo Gild</p>
                 <div className="flex items-center gap-2 justify-end">
-                  <span className="text-3xl font-black text-white">{students.reduce((a, s) => a + (s.coins || 0), 0)}</span>
+                  <span className="text-xl font-bold text-white pixel-font-header">{students.reduce((a, s) => a + (s.coins || 0), 0)}</span>
                   <Coins size={24} className="text-amber-400" />
                 </div>
               </div>
@@ -193,10 +197,8 @@ export default function WithdrawPage() {
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white/5 backdrop-blur-3xl rounded-[3.5rem] p-8 border border-white/10 shadow-2xl overflow-hidden relative group"
+                className="pixel-panel p-8 shadow-xl overflow-hidden relative group"
               >
-                <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-blue-500/20 transition-colors" />
-                
                 <div className="flex flex-col xl:flex-row gap-6 mb-10 relative z-10">
                   <div className="flex-1 relative">
                     <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-white/20" size={24} />
@@ -205,7 +207,7 @@ export default function WithdrawPage() {
                       placeholder="Cari nama siswa..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full h-16 bg-white/5 rounded-[1.5rem] pl-16 pr-8 border border-white/10 focus:border-blue-400 focus:bg-white/10 focus:outline-none font-black text-white transition-all placeholder:text-white/20"
+                      className="w-full h-16 bg-black/5 rounded-[1.5rem] pl-16 pr-8 border border-black/10 focus:border-blue-400 focus:bg-black/10 focus:outline-none font-black text-slate-900 transition-all placeholder:text-slate-400 font-outfit"
                     />
                   </div>
                   <div className="flex bg-black/20 p-1.5 rounded-[1.5rem] gap-1 overflow-x-auto no-scrollbar">
@@ -213,10 +215,10 @@ export default function WithdrawPage() {
                       <button
                         key={c}
                         onClick={() => setSelectedClass(c as any)}
-                        className={`px-6 py-3 rounded-xl text-[10px] font-black transition-all whitespace-nowrap ${
+                        className={`px-6 py-3 rounded-xl text-[10px] font-bold transition-all whitespace-nowrap pixel-font-body ${
                           selectedClass === c 
-                          ? 'bg-white text-slate-900 shadow-xl' 
-                          : 'text-white/40 hover:text-white/70'
+                          ? 'bg-amber-600 text-white shadow-xl' 
+                          : 'text-slate-400 hover:text-slate-800'
                         }`}
                       >
                         {c === 'Semua' ? 'SEMUA' : `KELAS ${c}`}
@@ -235,12 +237,12 @@ export default function WithdrawPage() {
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: idx * 0.05 }}
                         onClick={() => setSelectedStudent(student)}
-                        whileHover={{ scale: 1.02, y: -4, backgroundColor: 'rgba(255,255,255,0.08)' }}
+                        whileHover={{ scale: 1.02, y: -4 }}
                         whileTap={{ scale: 0.98 }}
-                        className={`p-6 rounded-[2rem] border transition-all cursor-pointer flex items-center justify-between ${
+                        className={`p-6 border transition-all cursor-pointer flex items-center justify-between ${
                           selectedStudent?.id === student.id
-                          ? 'bg-blue-600/20 border-blue-400 shadow-[0_0_30px_rgba(59,130,246,0.3)]'
-                          : 'bg-white/5 border-white/10'
+                          ? 'pixel-panel-blue scale-[1.02] shadow-lg'
+                          : 'bg-white border-slate-100 hover:bg-slate-50'
                         }`}
                       >
                         <div className="flex items-center gap-5">
@@ -255,13 +257,13 @@ export default function WithdrawPage() {
                             </div>
                           </div>
                           <div>
-                            <h3 className="font-black text-white text-lg leading-tight mb-1">{student.name}</h3>
-                            <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Absen {student.absen}</p>
+                            <h3 className="font-bold scifi-text-cyan text-lg leading-tight mb-1 font-outfit">{student.name}</h3>
+                            <p className="text-[9px] font-bold text-blue-300 uppercase tracking-[0.2em] font-scifi">Absen {student.absen}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="flex items-center gap-2 font-black text-amber-400 bg-amber-400/10 px-4 py-2 rounded-xl border border-amber-400/20">
-                            <span className="text-2xl tracking-tighter leading-none">{student.coins || 0}</span>
+                          <div className="flex items-center gap-2 font-bold text-amber-600 bg-black/5 px-4 py-2 rounded-xl border border-black/5">
+                            <span className="text-2xl tracking-tighter leading-none font-scifi">{student.coins || 0}</span>
                             <Coins size={18} />
                           </div>
                         </div>
@@ -285,7 +287,7 @@ export default function WithdrawPage() {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
-                    className="bg-white rounded-[3.5rem] p-10 shadow-2xl relative overflow-hidden"
+                    className="scifi-panel-glass p-10 shadow-2xl relative overflow-hidden"
                   >
                     {/* Decorative Elements */}
                     <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-rose-500 to-orange-500" />
@@ -297,61 +299,61 @@ export default function WithdrawPage() {
                       <div className="relative inline-block mb-6">
                         <img 
                           src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${selectedStudent.name}`} 
-                          className="w-32 h-32 rounded-[2.5rem] border-4 border-slate-50 bg-slate-50 shadow-xl" 
+                          className="w-32 h-32 rounded-[2rem] border-4 border-slate-100 bg-white shadow-lg" 
                           alt="" 
                         />
                         <div className="absolute -bottom-3 -right-3 w-12 h-12 bg-amber-400 rounded-2xl flex items-center justify-center text-white shadow-lg border-4 border-white">
                           <Coins size={24} />
                         </div>
                       </div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-2">Konfirmasi Penarikan</p>
-                      <h2 className="text-3xl font-black text-slate-800 tracking-tight leading-none">{selectedStudent.name}</h2>
-                      <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-full">
-                        <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Saldo Saat Ini:</span>
-                        <span className="text-sm font-black text-amber-600">{selectedStudent.coins} Koin</span>
+                      <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-2 pixel-font-body">Konfirmasi Penukaran</p>
+                      <h2 className="text-xl font-bold text-slate-800 leading-none pixel-font-header">{selectedStudent.name}</h2>
+                      <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-black/5 border border-black/10">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pixel-font-body">Saldo:</span>
+                        <span className="text-sm font-bold text-slate-800 pixel-font-body">{selectedStudent.coins} GP</span>
                       </div>
                     </div>
 
-                    <div className="space-y-8">
-                      <div className="space-y-3">
-                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-4">Jumlah Withdraw</label>
-                        <div className="relative group">
-                          <div className="absolute left-6 top-1/2 -translate-y-1/2 w-10 h-10 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center">
-                            <Banknote size={24} />
+                      <div className="space-y-8">
+                        <div className="space-y-3">
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-4 pixel-font-body">Jumlah Tukar (GP)</label>
+                          <div className="relative group">
+                            <div className="absolute left-6 top-1/2 -translate-y-1/2 w-10 h-10 bg-slate-50 text-amber-600 rounded-xl flex items-center justify-center">
+                              <Coins size={24} />
+                            </div>
+                            <input 
+                              type="number" 
+                              placeholder="0"
+                              value={withdrawAmount}
+                              onChange={(e) => setWithdrawAmount(e.target.value)}
+                              className="w-full h-20 bg-black/5 rounded-[1.8rem] pl-20 pr-8 border-2 border-transparent focus:border-amber-400 focus:bg-black/10 focus:outline-none font-bold text-4xl text-amber-600 transition-all placeholder:text-slate-200 pixel-font-body"
+                            />
                           </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-4 pixel-font-body">Keterangan Barang</label>
                           <input 
-                            type="number" 
-                            placeholder="0"
-                            value={withdrawAmount}
-                            onChange={(e) => setWithdrawAmount(e.target.value)}
-                            className="w-full h-20 bg-slate-50 rounded-[1.8rem] pl-20 pr-8 border-2 border-transparent focus:border-rose-400 focus:bg-white focus:outline-none font-black text-4xl text-rose-600 transition-all placeholder:text-slate-200"
+                            type="text" 
+                            placeholder="Misal: Pensil, Jajanan..."
+                            value={withdrawReason}
+                            onChange={(e) => setWithdrawReason(e.target.value)}
+                            className="w-full h-16 bg-black/5 rounded-[1.5rem] px-8 border-2 border-transparent focus:border-blue-400 focus:bg-black/10 focus:outline-none font-bold text-slate-800 transition-all placeholder:text-slate-200 pixel-font-body"
                           />
                         </div>
-                      </div>
 
-                      <div className="space-y-3">
-                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-4">Keterangan / Item</label>
-                        <input 
-                          type="text" 
-                          placeholder="Misal: Tukar Pensil, Penghapus..."
-                          value={withdrawReason}
-                          onChange={(e) => setWithdrawReason(e.target.value)}
-                          className="w-full h-16 bg-slate-50 rounded-[1.5rem] px-8 border-2 border-transparent focus:border-blue-400 focus:bg-white focus:outline-none font-bold text-slate-700 transition-all"
-                        />
+                        <button
+                          onClick={handleWithdraw}
+                          disabled={isProcessing}
+                          className="pixel-button-red w-full h-20 text-xl"
+                        >
+                          {isProcessing ? (
+                            <Loader2 className="animate-spin" size={28} />
+                          ) : (
+                            'PROSES TUKAR'
+                          )}
+                        </button>
                       </div>
-
-                      <button
-                        onClick={handleWithdraw}
-                        disabled={isProcessing}
-                        className="w-full h-20 bg-rose-600 text-white rounded-[2rem] font-black text-xl shadow-[0_15px_40px_-10px_rgba(225,29,72,0.4)] hover:bg-rose-700 hover:translate-y-[-4px] active:translate-y-[2px] transition-all flex items-center justify-center gap-4 disabled:opacity-50 disabled:translate-y-0"
-                      >
-                        {isProcessing ? (
-                          <Loader2 className="animate-spin" size={28} />
-                        ) : (
-                          <>Proses Tarik <CreditCard size={28} /></>
-                        )}
-                      </button>
-                    </div>
                   </motion.div>
                 ) : (
                   <motion.div
@@ -376,13 +378,12 @@ export default function WithdrawPage() {
               </AnimatePresence>
 
               {/* Recent Activity Card */}
-              <div className="bg-black/40 backdrop-blur-3xl rounded-[3.5rem] p-10 border border-white/10 shadow-2xl overflow-hidden relative">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-[60px]" />
-                <h2 className="text-xl font-black text-white flex items-center gap-4 mb-8 relative z-10">
-                  <div className="w-10 h-10 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center">
+              <div className="pixel-panel p-10 shadow-xl overflow-hidden relative">
+                <h2 className="text-sm pixel-font-header text-slate-800 flex items-center gap-4 mb-8 relative z-10">
+                  <div className="w-10 h-10 bg-blue-500/10 border-2 border-blue-500/20 text-blue-600 flex items-center justify-center">
                     <History size={22} />
                   </div>
-                  Aktivitas Terbaru
+                  AKTIVITAS TERBARU
                 </h2>
                 <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar relative z-10">
                   {recentTransactions.map((tx, idx) => (
@@ -391,27 +392,27 @@ export default function WithdrawPage() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.05 }}
-                      className="p-5 bg-white/5 rounded-[1.5rem] border border-white/5 flex items-center justify-between group hover:bg-white/10 transition-colors"
+                      className="p-5 bg-black/5 border-2 border-black/5 flex items-center justify-between group hover:bg-black/10 transition-colors pixel-font-body"
                     >
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-rose-500/20 text-rose-400 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <div className="w-12 h-12 bg-rose-500/10 text-rose-600 border border-rose-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
                           <TrendingDown size={22} />
                         </div>
                         <div className="min-w-0">
-                          <p className="font-black text-white text-sm leading-tight truncate mb-1">{tx.studentName}</p>
-                          <p className="text-[10px] text-white/30 font-black uppercase tracking-widest truncate">{tx.description}</p>
+                          <p className="font-bold text-slate-900 text-sm leading-tight truncate mb-1">{tx.studentName}</p>
+                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest truncate">{tx.description}</p>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="font-black text-rose-400 text-lg">-{tx.amount}</p>
-                        <p className="text-[8px] text-white/20 font-black uppercase">
+                        <p className="font-bold text-rose-600 text-lg">-{tx.amount} GP</p>
+                        <p className="text-[8px] text-slate-400 font-bold uppercase">
                           {tx.timestamp.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
                     </motion.div>
                   ))}
                   {recentTransactions.length === 0 && (
-                    <p className="text-center text-white/20 py-10 font-bold italic">Belum ada transaksi</p>
+                    <p className="text-center text-slate-400 py-10 font-bold italic pixel-font-body">Belum ada transaksi</p>
                   )}
                 </div>
               </div>

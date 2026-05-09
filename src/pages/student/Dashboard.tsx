@@ -15,13 +15,13 @@ import {
 import { motion } from 'motion/react';
 import { 
   Coins, Trophy, LogOut, ChevronRight, BookOpen, Target, 
-  History, Award, ClipboardList, Star, Clock,
-  Home, BookMarked, Calendar, Settings, Sparkles, Eye, ShoppingBag
+  History as HistoryIcon, Award, ClipboardList, Star, Clock,
+  Home, BookMarked, Calendar, Settings, Sparkles, Eye, ShoppingBag,
+  Swords, Backpack, Users, Map as MapIcon
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
 import { useGLTF, Float, Environment, ContactShadows, OrbitControls } from '@react-three/drei';
-import { useFrame } from '@react-three/fiber';
 import { Suspense, useRef } from 'react';
 import QuestModal from '../../components/QuestModal';
 import Certificate from '../../components/Certificate';
@@ -30,13 +30,6 @@ import { AnimatePresence } from 'motion/react';
 const CoinModel = () => {
   const { scene } = useGLTF('/moneda__koin.glb');
   const coinRef = useRef<any>();
-
-  // Rotasi otomatis tambahan
-  useFrame((state) => {
-    if (coinRef.current) {
-      coinRef.current.rotation.y += 0.01;
-    }
-  });
 
   return (
     <Float speed={3} rotationIntensity={2} floatIntensity={2}>
@@ -91,7 +84,6 @@ const StudentDashboard: React.FC = () => {
         studentClass = profileData.class?.toString() || '';
       }
       
-      // Filter quests by class AND exclude completed ones
       const completedIds = completedRes.docs.map(doc => doc.data().quest_id);
       const allQuests = questsRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       const filteredQuests = allQuests.filter((q: any) => {
@@ -102,7 +94,6 @@ const StudentDashboard: React.FC = () => {
       
       setQuests(filteredQuests);
 
-      // Filter Daily Tests
       const allTests = testsRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       const filteredTests = allTests.filter((t: any) => 
         (!t.target_class || t.target_class === 'Semua' || t.target_class.toString() === studentClass) &&
@@ -110,7 +101,6 @@ const StudentDashboard: React.FC = () => {
       );
       setDailyTests(filteredTests);
 
-      // Set Real Grades
       setGrades(gradesRes.docs.map(doc => {
         const data = doc.data();
         return {
@@ -131,11 +121,8 @@ const StudentDashboard: React.FC = () => {
         };
       }));
       setRedemptions(redeemRes.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      
-      // Set Canteen Items
       setCanteenItems(canteenItemsRes.docs.map(doc => ({ id: doc.id, ...doc.data() })));
 
-      // Fetch earned certificates
       try {
         const certRes = await getDocs(
           query(
@@ -170,616 +157,445 @@ const StudentDashboard: React.FC = () => {
     navigate('/login');
   };
 
-  if (loading) return null;
-
-  // Badge thresholds (Logic for lighting up)
-  const badges = [
-    { title: 'Pembaca Pemula', icon: '🐣', requirement: 1, current: history.length, color: 'bg-green-100 text-green-600' },
-    { title: 'Kolektor Koin', icon: '💰', requirement: 50, current: profile?.coins || 0, color: 'bg-amber-100 text-amber-600' },
-    { title: 'Penyelidik Buku', icon: '🔍', requirement: 5, current: history.length, color: 'bg-blue-100 text-blue-600' },
-    { title: 'Bintang Literasi', icon: '⭐', requirement: 3, current: quests.length, color: 'bg-purple-100 text-purple-600' }
-  ];
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: 'spring',
-        stiffness: 100
-      }
-    }
-  };
+  if (loading) return (
+    <div className="h-screen w-full bg-[#0f1419] flex items-center justify-center">
+      <div className="animate-spin text-[#a5e7ff]">
+        <Sparkles size={48} />
+      </div>
+    </div>
+  );
 
   return (
-    <div 
-      className="min-h-screen font-nunito relative overflow-hidden flex bg-fixed bg-cover bg-center"
-      style={{ backgroundImage: "url('/background dashboard siswa.png')" }}
-    >
-      {/* Dark Overlay for depth */}
-      <div className="absolute inset-0 bg-slate-950/40 pointer-events-none" />
+    <div className="flex h-screen w-full overflow-hidden bg-[#0f1419] text-[#dfe2ea] font-['Inter']">
+      <style>{`
+        .glass-panel {
+            background: rgba(28, 32, 38, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 210, 255, 0.2);
+        }
+        .glow-border-cyan {
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.3);
+            border: 1px solid rgba(0, 210, 255, 0.5);
+        }
+        .pixel-font {
+          font-family: 'Press Start 2P', cursive;
+        }
+        .scanline-overlay {
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.05));
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+        }
+      `}</style>
 
-      {/* 1. Slim Navigation Sidebar */}
-      <motion.aside 
-        initial={{ x: -100 }}
-        animate={{ x: 0 }}
-        className="w-20 hidden md:flex flex-col items-center py-8 gap-8 relative z-50 bg-white/5 backdrop-blur-3xl border-r border-white/10"
-      >
-        <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-white shadow-xl border border-white/20">
-          <BookOpen size={24} />
+      {/* Sidebar Navigation */}
+      <aside className="w-64 flex-shrink-0 bg-[#0a0f14] border-r border-[#3c494e] flex flex-col z-20">
+        <div className="p-6 flex items-center gap-4 border-b border-[#3c494e]">
+          <div className="w-12 h-12 rounded-lg overflow-hidden border border-[#00d2ff]/30">
+            <img 
+              className="w-full h-full object-cover" 
+              src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${profile?.full_name}`} 
+              alt="Avatar" 
+            />
+          </div>
+          <div>
+            <h1 className="pixel-font text-[10px] text-[#a5e7ff] tracking-tighter truncate w-32">{profile?.full_name?.split(' ')[0] || 'ADVENTURER'}</h1>
+            <p className="font-['Space_Grotesk'] text-[#bbc9cf] text-[10px] font-bold uppercase tracking-widest mt-1">
+              Level {profile?.class} {profile?.role === 'siswa' ? 'Student' : 'Admin'}
+            </p>
+          </div>
         </div>
-        <nav className="flex flex-col gap-6 mt-12">
-          {[Home, History, ShoppingBag, Settings].map((Icon, i) => (
-            <motion.div 
-              key={i}
-              onClick={() => setActiveTab(i)}
-              whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.1)' }}
-              className={`p-3 rounded-2xl cursor-pointer transition-all ${activeTab === i ? 'bg-white/20 text-white shadow-lg' : 'text-white/40 hover:text-white'}`}
+        
+        <nav className="flex-1 px-4 py-8 flex flex-col gap-2">
+          {[
+            { icon: 'home', label: 'Home', id: 0 },
+            { icon: 'history', label: 'Inventory', id: 1 },
+            { icon: 'shopping_bag', label: 'Merchant', id: 2 },
+            { icon: 'settings', label: 'Skills', id: 3 },
+          ].map((item) => (
+            <div 
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all ${
+                activeTab === item.id 
+                ? 'bg-[#00d2ff]/10 border border-[#00d2ff]/30 text-[#a5e7ff]' 
+                : 'hover:bg-[#1c2026] text-[#bbc9cf] border border-transparent'
+              }`}
             >
-              <Icon size={24} />
-            </motion.div>
+              <span className="material-symbols-outlined" style={{ fontVariationSettings: `'FILL' ${activeTab === item.id ? 1 : 0}` }}>
+                {item.icon}
+              </span>
+              <p className="font-['Space_Grotesk'] font-bold text-xs uppercase tracking-widest">{item.label}</p>
+            </div>
           ))}
         </nav>
-      </motion.aside>
 
-      <main className="flex-1 flex flex-col relative z-10 overflow-y-auto max-h-screen">
-        {/* 2. Top Header Bar */}
-        <motion.header 
-          initial={{ y: -50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="p-6 md:p-8 flex items-center justify-between"
-        >
-          <div className="flex items-center gap-4 bg-white/5 backdrop-blur-xl px-12 py-5 rounded-[3rem] border border-white/10 shadow-2xl">
-            <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-lg">SmartLibrary</h1>
-          </div>
+        <div className="p-6 mt-auto">
+          <button 
+            onClick={handleLogout}
+            className="w-full h-10 bg-[#1c2026] border border-[#3c494e] hover:border-[#ffb4ab] text-[#ffb4ab] text-[10px] pixel-font flex items-center justify-center rounded-lg transition-all"
+          >
+            LOG OUT
+          </button>
+        </div>
+      </aside>
 
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-4 bg-white/10 backdrop-blur-2xl px-6 py-3 rounded-[2.5rem] border border-white/20 shadow-xl">
-              <div className="w-10 h-10 rounded-full border-2 border-white/50 overflow-hidden bg-indigo-100">
-                <img src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${profile?.full_name}`} alt="avatar" />
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-black text-white leading-none">{profile?.full_name || 'Vicky'}</p>
-                <p className="text-[10px] font-bold text-white/90 uppercase tracking-widest mt-1">Siswa Kelas {profile?.class}</p>
-              </div>
-            </div>
-            
-            <motion.button 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleLogout}
-              className="px-6 py-3 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 text-white font-black text-xs hover:bg-white/20 transition-all uppercase tracking-widest"
-            >
-              Keluar <LogOut size={16} className="inline ml-2" />
-            </motion.button>
-          </div>
-        </motion.header>
+      {/* Main Content Area */}
+      <main className="flex-1 overflow-y-auto relative bg-[#0B0D17]">
+        {/* Atmospheric Background Layers */}
+        <div className="absolute inset-0 z-0 opacity-30 pointer-events-none">
+          <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_70%_20%,_#3826cd_0%,_transparent_40%)]"></div>
+          <div className="absolute bottom-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_80%,_#00d2ff_0%,_transparent_35%)]"></div>
+          <div className="scanline-overlay absolute inset-0"></div>
+        </div>
 
-        <div className="p-6 md:p-8 grid grid-cols-12 gap-8 max-w-[1600px] mx-auto w-full">
-          {/* 3. Profile Sidebar Card */}
-          <div className="col-span-12 lg:col-span-3 space-y-8">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-white/10 backdrop-blur-3xl rounded-[4rem] p-10 border border-white/20 shadow-2xl text-center relative overflow-hidden group"
-            >
-              <div className="relative z-10 flex flex-col items-center">
-                <div className="w-48 h-48 rounded-full border-[10px] border-white/20 bg-white/10 p-2 shadow-2xl mb-8">
-                  <img 
-                    src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${profile?.full_name}`} 
-                    className="w-full h-full rounded-full object-cover" 
-                    alt="profile"
-                  />
+        <div className="relative z-10 p-8 flex flex-col gap-8 max-w-7xl mx-auto">
+          {activeTab === 0 && (
+            <>
+              {/* Hero Banner Section */}
+              <section className="relative h-[400px] rounded-xl overflow-hidden glow-border-cyan group">
+                <div 
+                  className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" 
+                  style={{ 
+                    backgroundImage: `linear-gradient(rgba(15, 20, 25, 0.3) 0%, rgba(15, 20, 25, 0.9) 100%), url('https://lh3.googleusercontent.com/aida-public/AB6AXuCOK2QW2ARJ5IZ5lM8rWPD_7VY9yNpAX6_g16myb0kwISaQgOCmeFKZeYL-g44H_FsOuHQOauFxnr86_wESrtVQEYe3uqDr_GSv4ykO_iaAE1CLba8xlaC-4KIpOlc3hWKfKQTR6AAOk6Jj_87DTW_zvcF8EATJ0-yNMT9TlY8WlQadLxLd5lkUlIIye9KvEMPpU7WV1S-SWwRtOO6fivSvPMte0KH1R4dvPEpdbkiWfTDESrE1XF2Y0ID9xaxAeU6EN3IOIWMxW4o')` 
+                  }}
+                ></div>
+                <div className="absolute inset-0 p-12 flex flex-col justify-end gap-6">
+                  <div className="flex flex-col gap-3">
+                    <span className="pixel-font text-[10px] text-[#a5e7ff] tracking-widest bg-[#a5e7ff]/10 w-fit px-3 py-1 border border-[#a5e7ff]/20">
+                      NEW MISSION DISCOVERED
+                    </span>
+                    <h1 className="pixel-font text-4xl lg:text-5xl text-white leading-tight drop-shadow-[0_4px_10px_rgba(0,210,255,0.5)] uppercase">
+                      HALO, {profile?.full_name?.split(' ')[0] || 'ADVENTURER'}!
+                    </h1>
+                    <p className="text-[#bbc9cf] text-lg max-w-xl font-['Inter'] leading-relaxed">
+                      Pintu gerbang petualangan terbuka lebar! Jelajahi koleksi buku terbaru dan selesaikan misi literasi untuk mengumpulkan koin emas.
+                    </p>
+                  </div>
+                  <div className="flex gap-4 mt-4">
+                    <button 
+                      onClick={() => navigate('/library')}
+                      className="bg-[#00d2ff] hover:bg-[#47d6ff] text-[#003543] pixel-font text-[10px] px-8 py-4 rounded-lg flex items-center gap-3 transition-all transform hover:-translate-y-1 shadow-[0_4px_20px_rgba(0,210,255,0.4)]"
+                    >
+                      START QUEST
+                      <span className="material-symbols-outlined !text-sm">double_arrow</span>
+                    </button>
+                    <button className="bg-[#1c2026]/50 backdrop-blur-md border border-[#3c494e] hover:border-[#a5e7ff] text-white pixel-font text-[10px] px-8 py-4 rounded-lg transition-all">
+                      VIEW MAP
+                    </button>
+                  </div>
                 </div>
-                <h2 className="text-3xl font-black text-white mb-2">{profile?.full_name || 'vicky'}</h2>
-                <div className="px-6 py-2 bg-blue-600/80 rounded-full text-white text-[10px] font-black uppercase tracking-widest border border-white/20 shadow-lg">
-                  Siswa Kelas {profile?.class}
-                </div>
-              </div>
-            </motion.div>
+              </section>
 
-            {/* Saldo Koin Card - Match the Image */}
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-3xl rounded-[3.5rem] p-8 border border-white/10 shadow-2xl relative overflow-hidden"
-            >
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <p className="text-[10px] font-black text-white/80 uppercase tracking-[0.2em] mb-2">Saldo Koin:</p>
-                  <p className="text-6xl font-black text-white tabular-nums">{profile?.coins || 0}</p>
-                </div>
-                <div className="relative">
-                  <div className="w-32 h-32 -mr-4 -mt-4 cursor-grab active:cursor-grabbing">
+              {/* Stats Dashboard Grid */}
+              <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Gold Points Card */}
+                <div className="glass-panel p-6 rounded-xl flex flex-col gap-3 glow-border-cyan border-t-2 border-t-[#a5e7ff] relative overflow-hidden">
+                  <div className="flex justify-between items-center relative z-10">
+                    <p className="font-['Space_Grotesk'] font-bold text-[10px] uppercase tracking-widest text-[#bbc9cf]">Gold Points</p>
+                    <span className="material-symbols-outlined text-[#a5e7ff]" style={{ fontVariationSettings: "'FILL' 1" }}>payments</span>
+                  </div>
+                  <div className="flex items-end gap-2 relative z-10">
+                    <h2 className="pixel-font text-2xl text-white">{profile?.coins || 0}</h2>
+                    <span className="pixel-font text-[10px] text-[#a5e7ff] mb-1">GP</span>
+                  </div>
+                  
+                  {/* 3D Coin Miniature Integration */}
+                  <div className="absolute right-[-20px] bottom-[-20px] w-32 h-32 opacity-50">
                     <Canvas camera={{ position: [0, 0, 5], fov: 35 }} shadows>
                       <ambientLight intensity={2} />
-                      <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={3} />
-                      <pointLight position={[-10, -10, -10]} intensity={2} />
                       <Suspense fallback={null}>
                         <CoinModel />
-                        <Environment preset="apartment" />
-                        <ContactShadows position={[0, -1.2, 0]} opacity={0.6} scale={5} blur={2} far={4} />
                       </Suspense>
-                      <OrbitControls enableZoom={false} autoRotate={false} />
                     </Canvas>
                   </div>
                 </div>
-              </div>
-              <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-3">Poin ke level berikutnya</p>
-              <div className="h-4 bg-white/5 rounded-full p-1 border border-white/10 overflow-hidden shadow-inner">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: '65%' }}
-                  className="h-full bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-600 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)]"
-                />
-              </div>
-            </motion.div>
-          </div>
 
-          {/* 4. Dynamic Content Area */}
-          <div className="col-span-12 lg:col-span-9 space-y-8">
-            {activeTab === 0 && (
-              <>
-                {/* Dark Galaxy Hero Banner */}
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-slate-950/80 backdrop-blur-3xl rounded-[4rem] p-16 relative overflow-hidden border border-white/5 shadow-2xl shadow-indigo-950/50"
-                >
-                  <div className="absolute inset-0 opacity-40 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] pointer-events-none" />
-                  <div className="absolute -top-1/2 -right-1/4 w-[80%] h-[150%] bg-indigo-600/20 blur-[120px] rounded-full" />
-                  <div className="absolute -bottom-1/2 -left-1/4 w-[80%] h-[150%] bg-blue-600/10 blur-[120px] rounded-full" />
-                  <div className="relative z-10">
-                    <div className="flex items-center gap-4 mb-8">
-                      <h3 className="text-7xl font-black text-white tracking-tighter leading-none">Halo, {profile?.full_name?.split(' ')[0]}!</h3>
-                      <span className="text-6xl animate-bounce-slow">👋</span>
-                    </div>
-                    <p className="text-white text-2xl font-medium max-w-2xl leading-relaxed mb-12">
-                      Pintu gerbang ilmu terbuka lebar! Jelajahi ribuan kisah dan kumpulkan koin di setiap petualangan.
-                    </p>
-                    <motion.button 
-                      whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(255,255,255,0.3)" }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => navigate('/')}
-                      className="px-10 py-5 bg-white/10 backdrop-blur-md rounded-[2rem] border-2 border-white/20 text-white font-black text-xl flex items-center gap-4 group transition-all"
-                    >
-                      Buka Perpustakaan <BookMarked size={28} className="group-hover:rotate-12 transition-transform" />
-                    </motion.button>
+                {/* Mana / Borrow History Card */}
+                <div className="glass-panel p-6 rounded-xl flex flex-col gap-3 border-t-2 border-t-[#c4c0ff]">
+                  <div className="flex justify-between items-center">
+                    <p className="font-['Space_Grotesk'] font-bold text-[10px] uppercase tracking-widest text-[#bbc9cf]">Books Read</p>
+                    <span className="material-symbols-outlined text-[#c4c0ff]" style={{ fontVariationSettings: "'FILL' 1" }}>auto_fix_high</span>
                   </div>
-                </motion.div>
-
-                {/* Tugas & Misi Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-white/5 backdrop-blur-2xl rounded-[3.5rem] p-10 border border-white/10 shadow-xl"
-                  >
-                    <div className="flex items-center gap-4 mb-10">
-                      <div className="p-3 bg-indigo-500/20 rounded-2xl text-indigo-300">
-                        <ClipboardList size={28} />
-                      </div>
-                      <h3 className="text-2xl font-black text-white">Tugas Baru</h3>
-                    </div>
-                    <div className="space-y-6">
-                      {dailyTests.length > 0 ? (
-                        dailyTests.map((test, i) => (
-                          <motion.button 
-                            key={test.id} 
-                            whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.08)' }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => setActiveQuest({ ...test, title: `Ulangan: ${test.book_title} (Bab ${test.chapter})`, icon: '📝', reward: 50, isTest: true })}
-                            className="w-full p-6 bg-white/5 rounded-3xl border border-white/5 flex items-center justify-between text-left"
-                          >
-                            <div className="flex items-center gap-5">
-                              <div className="w-14 h-14 bg-emerald-500/20 rounded-2xl flex items-center justify-center text-3xl">📝</div>
-                              <div>
-                                <p className="font-black text-white text-sm">Ulangan: {test.book_title}</p>
-                                <p className="text-[10px] font-bold text-emerald-400 uppercase mt-2 tracking-widest">Bab {test.chapter} • Ambil Tugas Sekarang</p>
-                              </div>
-                            </div>
-                            <ChevronRight size={20} className="text-white/30" />
-                          </motion.button>
-                        ))
-                      ) : (
-                        <div className="text-center py-10 opacity-30 text-white italic text-sm">
-                          Belum ada tugas baru untukmu.
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-
-                  <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-white/5 backdrop-blur-2xl rounded-[3.5rem] p-10 border border-white/10 shadow-xl"
-                  >
-                    <div className="flex items-center gap-4 mb-10">
-                      <div className="p-3 bg-yellow-500/20 rounded-2xl text-yellow-300">
-                        <Trophy size={28} />
-                      </div>
-                      <h3 className="text-2xl font-black text-white">Misi Literasi</h3>
-                    </div>
-                    <div className="space-y-6">
-                      {quests.map((quest) => (
-                        <motion.button 
-                          key={quest.id} 
-                          whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.08)' }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => setActiveQuest(quest)}
-                          className="w-full p-6 bg-white/5 rounded-3xl border border-white/5 flex items-center justify-between group text-left"
-                        >
-                          <div className="flex items-center gap-5">
-                            <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-3xl">{quest.icon || '📖'}</div>
-                            <div>
-                              <p className="font-black text-white text-sm">{quest.title}</p>
-                              <p className="text-[10px] font-black text-yellow-400 uppercase mt-2 tracking-[0.2em]">+{quest.reward} KOIN</p>
-                            </div>
-                          </div>
-                          <ChevronRight size={24} className="text-white/40 group-hover:text-white transition-colors" />
-                        </motion.button>
-                      ))}
-                    </div>
-                  </motion.div>
+                  <h2 className="pixel-font text-2xl text-white">{history.length}<span className="text-[10px] text-[#3826cd]">/∞</span></h2>
+                  <div className="w-full bg-[#31353b] h-2 rounded-full overflow-hidden">
+                    <div className="h-full bg-[#c4c0ff] w-[65%] shadow-[0_0_8px_rgba(196,192,255,0.5)]"></div>
+                  </div>
                 </div>
 
-                {/* ====================================================
-                    SERTIFIKAT YANG DIPEROLEH
-                ==================================================== */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="bg-white/5 backdrop-blur-2xl rounded-[3.5rem] p-10 border border-white/10 shadow-xl relative overflow-hidden"
-                >
-                  {/* Gold accent glow */}
-                  <div className="absolute -top-20 -right-20 w-60 h-60 bg-amber-500/5 rounded-full blur-[80px] pointer-events-none" />
-                  <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-purple-500/5 rounded-full blur-[60px] pointer-events-none" />
-
-                  <div className="flex items-center gap-4 mb-10 relative z-10">
-                    <motion.div 
-                      className="p-3 rounded-2xl relative"
-                      style={{
-                        background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #B8860B 100%)',
-                        boxShadow: '0 8px 25px rgba(255,215,0,0.2)',
-                      }}
-                      animate={{ rotate: [0, 3, -3, 0] }}
-                      transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                    >
-                      <Award size={28} className="text-white" />
-                      <motion.div
-                        className="absolute -top-1 -right-1"
-                        animate={{ scale: [0, 1, 0], rotate: [0, 180, 360] }}
-                        transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-                      >
-                        <Sparkles size={12} className="text-yellow-300" />
-                      </motion.div>
-                    </motion.div>
-                    <div>
-                      <h3 className="text-2xl font-black text-white">Sertifikat Diperoleh</h3>
-                      <p className="text-white/40 text-xs font-bold uppercase tracking-widest mt-1">
-                        {certificates.length} sertifikat
-                      </p>
+                {/* Level Progress */}
+                <div className="glass-panel p-6 rounded-xl flex flex-col gap-4 lg:col-span-2 border-t-2 border-t-[#47d6ff]">
+                  <div className="flex justify-between items-center">
+                    <div className="flex flex-col">
+                      <p className="font-['Space_Grotesk'] font-bold text-[10px] uppercase tracking-widest text-[#bbc9cf]">Level Up Progress</p>
+                      <h3 className="pixel-font text-[12px] text-white mt-1">Level {profile?.class} <span className="text-[#a5e7ff] mx-2">→</span> Level {parseInt(profile?.class) + 1}</h3>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-['Space_Grotesk'] font-bold text-[#a5e7ff] text-xl">75%</p>
+                      <p className="font-['Space_Grotesk'] font-bold text-[8px] text-[#bbc9cf] uppercase tracking-tighter">800 XP TO GO</p>
                     </div>
                   </div>
-
-                  {certificates.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 relative z-10">
-                      {certificates.map((cert, i) => (
-                        <motion.button
-                          key={cert.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.1 * i }}
-                          whileHover={{ scale: 1.03, y: -4 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => setSelectedCert(cert)}
-                          className="group relative p-6 rounded-3xl border text-left transition-all overflow-hidden"
-                          style={{
-                            background: 'linear-gradient(145deg, rgba(255,215,0,0.08) 0%, rgba(255,165,0,0.03) 50%, rgba(139,69,19,0.05) 100%)',
-                            borderColor: 'rgba(255,215,0,0.15)',
-                            boxShadow: '0 4px 20px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,215,0,0.1)',
-                          }}
-                        >
-                          {/* Shimmer overlay on hover */}
-                          <div 
-                            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                            style={{
-                              background: 'linear-gradient(105deg, transparent 40%, rgba(255,215,0,0.06) 45%, rgba(255,215,0,0.12) 50%, rgba(255,215,0,0.06) 55%, transparent 60%)',
-                              backgroundSize: '200% 100%',
-                              animation: 'shimmer 2s linear infinite',
-                            }}
-                          />
-
-                          {/* Gold corner accent */}
-                          <div className="absolute top-0 right-0 w-16 h-16 overflow-hidden">
-                            <div 
-                              className="absolute top-0 right-0 w-24 h-24 -translate-y-1/2 translate-x-1/2 rotate-45"
-                              style={{ background: 'linear-gradient(135deg, rgba(255,215,0,0.3), rgba(255,165,0,0.1))' }}
-                            />
-                          </div>
-
-                          <div className="flex items-start gap-4">
-                            <div 
-                              className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
-                              style={{
-                                background: 'linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,165,0,0.1))',
-                                border: '1px solid rgba(255,215,0,0.2)',
-                              }}
-                            >
-                              <Award size={26} className="text-amber-400" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-black text-white text-sm truncate">{cert.quest_title}</p>
-                              <p className="text-amber-300/70 text-[10px] font-bold uppercase tracking-widest mt-1">
-                                Nilai: {cert.score} • {cert.date}
-                              </p>
-                              <p className="text-white/40 text-[10px] font-bold mt-2 truncate">
-                                Atas nama: {cert.student_name}
-                              </p>
-                            </div>
-                            <motion.div
-                              className="flex-shrink-0 p-2 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"
-                              style={{ background: 'rgba(255,215,0,0.1)' }}
-                            >
-                              <Eye size={18} className="text-amber-400" />
-                            </motion.div>
-                          </div>
-                        </motion.button>
-                      ))}
+                  <div className="relative w-full bg-[#31353b] h-4 rounded-lg border border-[#3c494e] p-[2px]">
+                    <div className="h-full bg-gradient-to-r from-[#00d2ff] to-[#47d6ff] rounded-sm transition-all" style={{ width: '75%' }}>
+                      <div className="w-full h-full opacity-30 bg-[repeating-linear-gradient(45deg,_transparent,_transparent_10px,_#ffffff_10px,_#ffffff_12px)]"></div>
                     </div>
-                  ) : (
-                    <div className="text-center py-12 relative z-10">
-                      <motion.div
-                        animate={{ y: [0, -8, 0] }}
-                        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                        className="inline-block mb-6"
-                      >
-                        <div 
-                          className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto"
-                          style={{
-                            background: 'linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,165,0,0.05))',
-                            border: '1px dashed rgba(255,215,0,0.2)',
-                          }}
-                        >
-                          <Award size={36} className="text-amber-400/30" />
+                  </div>
+                </div>
+              </section>
+
+              {/* Quests Section */}
+              <section className="flex flex-col gap-6">
+                <div className="flex items-center justify-between border-b border-[#3c494e] pb-4">
+                  <div className="flex items-center gap-4">
+                    <span className="material-symbols-outlined text-[#a5e7ff] text-3xl">explore</span>
+                    <h2 className="pixel-font text-lg text-white uppercase">ACTIVE QUESTS</h2>
+                  </div>
+                  <button onClick={() => setActiveTab(1)} className="font-['Space_Grotesk'] font-bold text-[#a5e7ff] hover:underline text-[10px] uppercase tracking-widest">VIEW LOGBOOK</button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Map over Quests and Daily Tests */}
+                  {[...quests, ...dailyTests].slice(0, 3).map((item, idx) => (
+                    <div 
+                      key={item.id}
+                      onClick={() => {
+                        if (item.book_title) {
+                          setActiveQuest({ ...item, title: `Ulangan: ${item.book_title} (Bab ${item.chapter})`, icon: '📝', reward: 50, isTest: true });
+                        } else {
+                          setActiveQuest(item);
+                        }
+                      }}
+                      className="glass-panel group hover:bg-[#262a30] transition-all cursor-pointer rounded-xl overflow-hidden border border-[#3c494e] flex flex-col h-full"
+                    >
+                      <div className="h-32 w-full overflow-hidden relative">
+                        <img 
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                          src={item.image || (item.book_title ? 'https://lh3.googleusercontent.com/aida-public/AB6AXuCk6yMbp8Lbi9JZ7Htg7WzbfG8jBVfJIBfEZNA28UHfj46pPzMiyS-czcoVrKvSsY-WvWxKbxCrKRNt5gZh-_UUTL64zHQkcH63RxpwQWMrGmtJ2C5cWYFblJIyQ7csIMmEQJUfO82Z3zc4rXg7eSegAEF_p1ZZaei4TanDLRYENn1RgWIip4QPPa8zSOINsZ41QcdgZ3kWhV2IsKVd_l6bZ7aMdbJde_a2D9MepEy5cG-f0tJTf7dUuvVw6Ow0EhSyyjNKz3hIoOc' : 'https://lh3.googleusercontent.com/aida-public/AB6AXuDOS92LO-swvXinXpKIbP9ap1JWGZRfAUl62Hb2DIRnCAMahiymI7SlAwa5RH3cDAu5L7umxRfagzskbEoKd9ZbVUrlVZi9pICBZb3MndB0BmowlH3pgNLMUwTHDQrdljIaDHbkiF7uDwBedBPVrpul26W1Vuo88ZtGyYB58Hesh_24rQfoDef60jXWZsjrkG5Rp-AQKIM2vwL7w2KpU67dqjyLQid_bAF4g-C6nkN8Ayap_7n-V2sIhEWYwPDz7GEcmXyGx1sehDQ')} 
+                          alt="Quest" 
+                        />
+                        <div className={`absolute top-2 right-2 font-['Space_Grotesk'] text-[8px] font-bold px-2 py-1 rounded ${item.book_title ? 'bg-[#ffb4ab] text-[#690005]' : 'bg-[#a5e7ff] text-[#003543]'}`}>
+                          {item.book_title ? 'EXAM' : 'MISSION'}
                         </div>
-                      </motion.div>
-                      <p className="text-white/30 font-bold text-sm">Belum ada sertifikat</p>
-                      <p className="text-white/20 text-xs mt-2">Selesaikan misi literasi untuk mendapatkan sertifikat!</p>
+                      </div>
+                      <div className="p-5 flex flex-col gap-2 flex-1">
+                        <h4 className="pixel-font text-[10px] text-white leading-relaxed truncate">
+                          {item.book_title ? `Ulangan: ${item.book_title}` : item.title}
+                        </h4>
+                        <p className="text-[#bbc9cf] text-[11px] line-clamp-2">
+                          {item.book_title ? `Uji kemampuanmu pada Bab ${item.chapter} dari buku ${item.book_title}.` : item.description}
+                        </p>
+                        <div className="flex justify-between items-center mt-auto pt-4 border-t border-[#3c494e]">
+                          <span className="text-[#a5e7ff] font-['Space_Grotesk'] font-bold text-[10px] tracking-widest">
+                            +{item.reward || 50} GP REWARD
+                          </span>
+                          <span className="material-symbols-outlined text-[#bbc9cf] group-hover:text-[#a5e7ff] transition-all">arrow_forward</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {quests.length === 0 && dailyTests.length === 0 && (
+                    <div className="col-span-full py-12 text-center border-2 border-dashed border-[#3c494e] rounded-xl text-[#bbc9cf] font-['Space_Grotesk'] uppercase tracking-widest text-xs">
+                      No Active Quests Available
                     </div>
                   )}
-                </motion.div>
-              </>
-            )}
-
-            {activeTab === 1 && (
-              <div className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <motion.div className="bg-white/5 backdrop-blur-2xl rounded-[3.5rem] p-10 border border-white/10">
-                    <h3 className="text-2xl font-black text-white mb-8 flex items-center gap-4">
-                      <History className="text-blue-400" /> Riwayat Baca
-                    </h3>
-                    <div className="space-y-4">
-                      {history.map((h, i) => (
-                        <div key={i} className="p-4 bg-white/5 rounded-2xl flex justify-between items-center">
-                          <span className="text-white font-bold">{h.book_title || 'Judul Buku'}</span>
-                          <span className="text-white/70 text-xs">{new Date(h.created_at).toLocaleDateString()}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
-
-                  <motion.div className="bg-white/5 backdrop-blur-2xl rounded-[3.5rem] p-10 border border-white/10">
-                    <h3 className="text-2xl font-black text-white mb-8 flex items-center gap-4">
-                      <Award className="text-purple-400" /> Koleksi Badge
-                    </h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      {badges.map((badge, i) => (
-                        <div key={i} className={`p-4 rounded-2xl text-center ${badge.current >= badge.requirement ? badge.color : 'bg-white/5 opacity-30 grayscale'}`}>
-                          <div className="text-3xl mb-2">{badge.icon}</div>
-                          <p className="text-[10px] font-black uppercase">{badge.title}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
                 </div>
+              </section>
+            </>
+          )}
 
-                <motion.div className="bg-white/5 backdrop-blur-2xl rounded-[3.5rem] p-10 border border-white/10">
-                  <h3 className="text-2xl font-black text-white mb-8 flex items-center gap-4">
-                    <Coins className="text-yellow-400" /> Riwayat Penukaran Koin
-                  </h3>
-                  <div className="space-y-4">
-                    {redemptions.map((r, i) => (
-                      <div key={i} className="p-4 bg-white/5 rounded-2xl flex justify-between items-center border border-white/5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center text-amber-400">
-                            <Coins size={16} />
-                          </div>
+          {activeTab === 1 && (
+            <section className="flex flex-col gap-8">
+              <div className="flex items-center gap-4 border-b border-[#3c494e] pb-4">
+                <span className="material-symbols-outlined text-[#a5e7ff] text-3xl">backpack</span>
+                <h2 className="pixel-font text-lg text-white uppercase">INVENTORY & LOGBOOK</h2>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Certificates */}
+                <div className="glass-panel p-8 rounded-xl flex flex-col gap-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-['Space_Grotesk'] font-bold text-xs uppercase tracking-[0.2em] text-[#a5e7ff]">Quest Certificates</h3>
+                    <span className="bg-[#a5e7ff]/10 text-[#a5e7ff] px-3 py-1 text-[10px] pixel-font">{certificates.length}</span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4">
+                    {certificates.map((cert) => (
+                      <div 
+                        key={cert.id}
+                        onClick={() => setSelectedCert(cert)}
+                        className="bg-[#1c2026]/50 border border-[#3c494e] hover:border-[#a5e7ff] p-4 rounded-lg flex items-center justify-between cursor-pointer group transition-all"
+                      >
+                        <div className="flex items-center gap-4">
+                          <span className="material-symbols-outlined text-[#a5e7ff] text-2xl">workspace_premium</span>
                           <div>
-                            <p className="text-white font-bold text-sm">{r.description}</p>
-                            <p className="text-white/40 text-[10px] uppercase font-black">{new Date(r.created_at).toLocaleDateString()}</p>
+                            <p className="font-bold text-sm text-white">{cert.quest_title}</p>
+                            <p className="text-[10px] text-[#bbc9cf]">{new Date(cert.created_at).toLocaleDateString()}</p>
                           </div>
                         </div>
-                        <span className="text-rose-400 font-black">-{r.amount}</span>
+                        <span className="material-symbols-outlined text-[#3c494e] group-hover:text-[#a5e7ff]">visibility</span>
                       </div>
                     ))}
-                    {redemptions.length === 0 && <p className="text-center text-white/20 py-10 font-bold italic">Belum ada penukaran koin</p>}
+                    {certificates.length === 0 && (
+                      <p className="text-center py-12 text-[#3c494e] italic text-sm">Belum ada sertifikat petualang.</p>
+                    )}
                   </div>
-                </motion.div>
-
-                {/* Nilai Akademik Section */}
-                <motion.div className="bg-white/5 backdrop-blur-2xl rounded-[3.5rem] p-10 border border-white/10 shadow-2xl">
-                  <h3 className="text-2xl font-black text-white mb-8 flex items-center gap-4">
-                    <ClipboardList className="text-green-400" /> Nilai Tugas & Ulangan
-                  </h3>
-                  <div className="overflow-hidden rounded-3xl border border-white/5">
-                    <table className="w-full text-left">
-                      <thead className="bg-white/10 text-white/70 text-[10px] font-black uppercase tracking-widest">
-                        <tr>
-                          <th className="px-6 py-4">Mata Pelajaran</th>
-                          <th className="px-6 py-4">Jenis</th>
-                          <th className="px-6 py-4">Nilai</th>
-                          <th className="px-6 py-4">Tanggal</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-white/5">
-                        {grades.map((g, i) => (
-                          <tr key={i} className="hover:bg-white/5 transition-colors">
-                            <td className="px-6 py-4 text-white font-bold text-sm">{g.subject}</td>
-                            <td className="px-6 py-4">
-                              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${g.type === 'Ulangan Harian' ? 'bg-orange-500/20 text-orange-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                                {g.type}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className={`text-xl font-black ${g.score >= 90 ? 'text-green-400' : 'text-white'}`}>{g.score}</span>
-                            </td>
-                            <td className="px-6 py-4 text-white/70 text-xs">{new Date(g.date).toLocaleDateString()}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </motion.div>
-              </div>
-            )}
-
-            {activeTab === 2 && (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-10"
-              >
-                <div className="bg-gradient-to-br from-amber-500/20 to-orange-600/20 backdrop-blur-3xl rounded-[4rem] p-12 border border-white/10 relative overflow-hidden">
-                  <div className="absolute top-[-20%] right-[-10%] w-64 h-64 bg-amber-400/20 blur-[80px] rounded-full" />
-                  <h3 className="text-5xl font-black text-white tracking-tighter mb-4">Katalog Kantin <span className="text-amber-400">Sehat</span></h3>
-                  <p className="text-white/60 text-lg font-medium max-w-xl">Tukarkan koin prestasimu dengan berbagai alat tulis dan makanan sehat di kantin sekolah!</p>
                 </div>
 
-                {canteenItems.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
-                    {canteenItems.map((item, i) => (
-                      <motion.div
-                        key={item.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                        whileHover={item.stock > 0 ? { y: -8, scale: 1.02 } : {}}
-                        className={`bg-white rounded-[2.5rem] p-4 border border-white/20 shadow-xl flex flex-col relative overflow-hidden group ${
-                          item.stock === 0 ? 'opacity-50 grayscale' : ''
-                        }`}
-                      >
-                        {/* Product Image Wrapper */}
-                        <div className="aspect-square bg-slate-50 rounded-[2rem] mb-4 overflow-hidden flex items-center justify-center p-6 relative">
-                          <img 
-                            src={item.image || 'https://cdn-icons-png.flaticon.com/512/3067/3067451.png'} 
-                            alt={item.name} 
-                            className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" 
-                          />
-                          {item.stock === 0 && (
-                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[2px]">
-                              <span className="bg-white/90 px-4 py-2 rounded-full text-[10px] font-black text-rose-600 uppercase tracking-widest">Habis Terjual</span>
-                            </div>
-                          )}
-                          <div className="absolute top-3 right-3 bg-white/80 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black text-emerald-600 shadow-sm">
-                            {item.price} 🪙
-                          </div>
+                {/* Borrow History */}
+                <div className="glass-panel p-8 rounded-xl flex flex-col gap-6">
+                  <h3 className="font-['Space_Grotesk'] font-bold text-xs uppercase tracking-[0.2em] text-[#a5e7ff]">Reading Log</h3>
+                  <div className="flex flex-col gap-4">
+                    {history.map((item, idx) => (
+                      <div key={idx} className="bg-[#1c2026]/50 border border-[#3c494e] p-4 rounded-lg flex justify-between items-center">
+                        <div>
+                          <p className="font-bold text-sm text-white">{item.book_title}</p>
+                          <p className="text-[10px] text-[#bbc9cf] uppercase tracking-widest mt-1">Returned: {new Date(item.created_at).toLocaleDateString()}</p>
                         </div>
-                        
-                        {/* Product Info */}
-                        <div className="px-2 pb-2 flex-1 flex flex-col">
-                          <h4 className="text-sm font-black text-slate-800 line-clamp-1 mb-1">{item.name}</h4>
-                          <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-50">
-                            <div className="flex flex-col">
-                              <span className={`text-[8px] font-black uppercase tracking-widest ${item.stock > 0 ? 'text-emerald-500' : 'text-slate-400'}`}>
-                                {item.stock > 0 ? 'Ready' : 'Kosong'}
-                              </span>
-                              <span className="text-[8px] font-bold text-slate-300">Stok: {item.stock}</span>
-                            </div>
-                            <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              disabled={item.stock === 0 || (profile?.coins || 0) < item.price}
-                              onClick={() => setActiveQuest({ ...item, isShop: true })}
-                              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all shadow-md ${
-                                item.stock > 0 && (profile?.coins || 0) >= item.price
-                                ? 'bg-emerald-500 text-white shadow-emerald-200 hover:bg-emerald-600'
-                                : 'bg-slate-100 text-slate-400 shadow-none cursor-not-allowed'
-                              }`}
-                            >
-                              {(profile?.coins || 0) < item.price ? 'Koin Kurang' : 'Tukar'}
-                            </motion.button>
-                          </div>
+                        <div className="text-right">
+                          <span className="text-[10px] font-bold text-[#0bda54] uppercase tracking-widest">+XP</span>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
-                ) : (
-                  <div className="bg-white/5 backdrop-blur-2xl rounded-[4rem] p-20 border border-white/10 text-center">
-                    <div className="w-24 h-24 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <ShoppingBag size={40} className="text-white/20" />
-                    </div>
-                    <h4 className="text-2xl font-black text-white mb-2">Belum Ada Barang</h4>
-                    <p className="text-white/40 font-bold max-w-sm mx-auto">Petugas kantin sedang menyiapkan stok barang baru. Silakan cek kembali nanti ya!</p>
-                  </div>
-                )}
-              </motion.div>
-            )}
+                </div>
+              </div>
+            </section>
+          )}
 
-            {activeTab === 3 && (
-              <motion.div className="bg-white/5 backdrop-blur-2xl rounded-[4rem] p-16 border border-white/10">
-                <h2 className="text-4xl font-black text-white mb-12 flex items-center gap-6">
-                  <Settings size={40} className="text-indigo-400" /> Pengaturan Akun
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl">
-                  <div className="space-y-2">
-                    <label className="text-white/70 text-[10px] font-black uppercase ml-4">Nama Lengkap</label>
-                    <input disabled value={profile?.full_name} className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-8 py-4 text-white font-bold" />
+          {activeTab === 2 && (
+            <section className="flex flex-col gap-8">
+              <div className="flex items-center justify-between border-b border-[#3c494e] pb-4">
+                <div className="flex items-center gap-4">
+                  <span className="material-symbols-outlined text-[#a5e7ff] text-3xl">storefront</span>
+                  <h2 className="pixel-font text-lg text-white uppercase">MERCHANT GUILD</h2>
+                </div>
+                <div className="bg-[#a5e7ff]/10 px-4 py-2 rounded border border-[#a5e7ff]/30 flex items-center gap-2">
+                  <span className="pixel-font text-[10px] text-[#a5e7ff]">{profile?.coins || 0} GP</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {canteenItems.map((item) => (
+                  <div 
+                    key={item.id}
+                    className={`glass-panel p-4 rounded-xl flex flex-col gap-4 group transition-all ${item.stock === 0 ? 'opacity-50 grayscale' : 'hover:bg-[#1c2026] shadow-xl'}`}
+                  >
+                    <div className="h-40 bg-[#0a0f14] rounded-lg overflow-hidden flex items-center justify-center p-4 relative">
+                      <img src={item.image || 'https://cdn-icons-png.flaticon.com/512/3067/3067451.png'} alt={item.name} className="h-full object-contain group-hover:scale-110 transition-transform" />
+                      <div className="absolute top-2 right-2 bg-[#a5e7ff] text-[#003543] font-['Space_Grotesk'] font-bold text-[10px] px-2 py-1 rounded">
+                        {item.price} GP
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <h4 className="font-bold text-sm text-white truncate">{item.name}</h4>
+                      <p className="text-[10px] text-[#bbc9cf] uppercase tracking-widest">Stock: {item.stock}</p>
+                    </div>
+                    <button 
+                      disabled={item.stock === 0 || (profile?.coins || 0) < item.price}
+                      onClick={() => setActiveQuest({ ...item, isShop: true })}
+                      className={`w-full py-2 rounded font-bold text-[10px] uppercase tracking-widest transition-all ${
+                        item.stock > 0 && (profile?.coins || 0) >= item.price
+                        ? 'bg-[#00d2ff] text-[#003543] hover:bg-[#a5e7ff]'
+                        : 'bg-[#31353b] text-[#bbc9cf] cursor-not-allowed'
+                      }`}
+                    >
+                      Exchange
+                    </button>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-white/70 text-[10px] font-black uppercase ml-4">Kelas</label>
-                    <input disabled value={profile?.class} className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-8 py-4 text-white font-bold" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-white/70 text-[10px] font-black uppercase ml-4">NISN / ID</label>
-                    <input disabled value={profile?.id?.slice(0, 8)} className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-8 py-4 text-white font-bold" />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {activeTab === 3 && (
+            <section className="flex flex-col gap-8">
+              <div className="flex items-center gap-4 border-b border-[#3c494e] pb-4">
+                <span className="material-symbols-outlined text-[#a5e7ff] text-3xl">auto_fix_normal</span>
+                <h2 className="pixel-font text-lg text-white uppercase">CHARACTER SKILLS & STATS</h2>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Character Sheet */}
+                <div className="glass-panel p-8 rounded-xl flex flex-col gap-8 lg:col-span-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-6">
+                      <h3 className="font-['Space_Grotesk'] font-bold text-xs uppercase tracking-[0.2em] text-[#bbc9cf]">Basic Attributes</h3>
+                      <div className="space-y-4">
+                        {[
+                          { label: 'Full Name', value: profile?.full_name },
+                          { label: 'Student ID', value: profile?.id?.slice(0, 10) },
+                          { label: 'Class Rank', value: `Grade ${profile?.class}` },
+                          { label: 'Guild Role', value: profile?.role?.toUpperCase() },
+                        ].map((attr, idx) => (
+                          <div key={idx} className="flex flex-col gap-1">
+                            <p className="text-[8px] font-bold text-[#3c494e] uppercase tracking-widest">{attr.label}</p>
+                            <p className="font-bold text-sm text-[#a5e7ff]">{attr.value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-6">
+                      <h3 className="font-['Space_Grotesk'] font-bold text-xs uppercase tracking-[0.2em] text-[#bbc9cf]">Academic Performance</h3>
+                      <div className="flex flex-col gap-4">
+                        {grades.map((grade, idx) => (
+                          <div key={idx} className="flex justify-between items-center bg-[#1c2026]/50 p-3 rounded">
+                            <div>
+                              <p className="font-bold text-xs text-white">{grade.subject}</p>
+                              <p className="text-[8px] text-[#bbc9cf] uppercase tracking-widest">{new Date(grade.date).toLocaleDateString()}</p>
+                            </div>
+                            <span className={`pixel-font text-[10px] ${grade.score >= 75 ? 'text-[#0bda54]' : 'text-[#ffb4ab]'}`}>
+                              {grade.score}
+                            </span>
+                          </div>
+                        ))}
+                        {grades.length === 0 && <p className="text-center py-8 text-[#3c494e] italic text-xs">No academic records yet.</p>}
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="mt-12 p-8 bg-blue-500/10 border border-blue-500/20 rounded-3xl text-blue-200">
-                  <p className="font-bold mb-2">💡 Info Profil</p>
-                  <p className="text-sm opacity-80">Untuk mengubah data nama atau kelas, silakan hubungi petugas perpustakaan atau admin sekolah.</p>
+
+                {/* Level Up Info Card */}
+                <div className="glass-panel p-8 rounded-xl flex flex-col gap-6 border-l-4 border-l-[#a5e7ff]">
+                   <h3 className="font-['Space_Grotesk'] font-bold text-xs uppercase tracking-[0.2em] text-[#a5e7ff]">Path to Mastery</h3>
+                   <div className="space-y-6">
+                      <div className="text-center p-6 bg-[#0a0f14] rounded-lg border border-[#3c494e]">
+                        <p className="text-[8px] font-bold text-[#bbc9cf] uppercase tracking-[0.2em] mb-2">Total Gold Points Earned</p>
+                        <h2 className="pixel-font text-3xl text-white">{profile?.coins || 0}</h2>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex justify-between text-[8px] font-bold uppercase tracking-widest text-[#bbc9cf]">
+                          <span>Current XP</span>
+                          <span>Next Level</span>
+                        </div>
+                        <div className="w-full bg-[#31353b] h-3 rounded-full overflow-hidden p-[1px]">
+                          <div className="h-full bg-[#a5e7ff] rounded-full shadow-[0_0_10px_rgba(165,231,255,0.5)]" style={{ width: '75%' }}></div>
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-[#bbc9cf] italic leading-relaxed text-center">
+                        "Setiap buku yang dibaca adalah satu langkah menuju kebijaksanaan yang lebih besar."
+                      </p>
+                   </div>
                 </div>
-              </motion.div>
-            )}
-          </div>
+              </div>
+            </section>
+          )}
         </div>
       </main>
-      
+
       <AnimatePresence>
         {activeQuest && (
           <QuestModal 
             quest={activeQuest} 
             onClose={() => {
               setActiveQuest(null);
-              fetchData(); // Refresh data saat modal ditutup
+              fetchData();
             }} 
           />
         )}
       </AnimatePresence>
 
-      {/* Certificate Viewer Modal */}
       <AnimatePresence>
         {selectedCert && (
           <Certificate
@@ -790,31 +606,8 @@ const StudentDashboard: React.FC = () => {
           />
         )}
       </AnimatePresence>
-
-      {/* Aesthetic Floating Particles */}
-      {[...Array(20)].map((_, i) => (
-        <motion.div
-          key={i}
-          animate={{
-            y: [-10, 10, -10],
-            opacity: [0.2, 0.5, 0.2],
-            scale: [1, 1.2, 1]
-          }}
-          transition={{
-            duration: Math.random() * 5 + 3,
-            repeat: Infinity,
-            delay: Math.random() * 5
-          }}
-          className="absolute w-1 h-1 bg-white rounded-full blur-[1px] pointer-events-none"
-          style={{
-            top: `${Math.random() * 100}%`,
-            left: `${Math.random() * 100}%`,
-          }}
-        />
-      ))}
     </div>
   );
 };
 
 export default StudentDashboard;
-

@@ -68,21 +68,9 @@ export default function LibraryPage() {
   };
 
   return (
-    <div className="min-h-screen relative font-nunito text-white overflow-x-hidden">
-      {/* Video Background */}
-      <div className="fixed inset-0 z-0">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-        >
-          <source src="/back.webm" type="video/webm" />
-        </video>
-        {/* Overlay for better contrast and depth - Optimized blur */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/70 via-slate-900/50 to-blue-900/70 backdrop-blur-[1px]" />
-      </div>
+    <div className="min-h-screen relative font-pixel-body text-slate-900 overflow-x-hidden pixel-adventure-bg">
+      {/* Dark Overlay for better contrast */}
+      <div className="fixed inset-0 bg-white/5 pointer-events-none z-0" />
 
       <motion.div
         variants={containerVariants}
@@ -125,8 +113,8 @@ export default function LibraryPage() {
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
               <div className="relative z-10">
-                <h3 className="text-3xl font-black mb-1 tracking-tight">Misi Literasi</h3>
-                <p className="text-blue-100/80 text-sm font-semibold flex items-center gap-2">
+                <h3 className="text-3xl scifi-text-header mb-1 tracking-tight">Misi Literasi</h3>
+                <p className="text-blue-100 font-bold text-sm flex items-center gap-2 font-outfit">
                   Selesaikan tantangan & raih koin! <ChevronRight size={16} />
                 </p>
               </div>
@@ -145,12 +133,12 @@ export default function LibraryPage() {
         {/* Books Section Header */}
         <div className="flex items-center justify-between px-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20">
-              <Library className="text-blue-300" />
+            <div className="w-12 h-12 scifi-header-blue flex items-center justify-center shadow-xl">
+              <Library className="text-white" size={24} />
             </div>
             <div>
-              <h2 className="text-2xl font-black tracking-tight">Koleksi Digital</h2>
-              <p className="text-slate-400 text-sm font-medium">Menampilkan {filteredItems.length} konten seru</p>
+              <h2 className="text-2xl scifi-text-header text-white">Koleksi Digital</h2>
+              <p className="text-blue-300 text-sm font-bold uppercase tracking-widest font-scifi">Sektor Terbuka: {filteredItems.length} Konten</p>
             </div>
           </div>
         </div>

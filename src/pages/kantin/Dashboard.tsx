@@ -92,25 +92,28 @@ const KantinDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-nunito">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen pixel-adventure-bg p-4 md:p-8 font-pixel-body relative overflow-hidden">
+      {/* Dark Overlay */}
+      <div className="absolute inset-0 bg-white/5 pointer-events-none" />
+
+      <div className="max-w-4xl mx-auto space-y-6 relative z-10">
         {/* Header */}
-        <div className="flex justify-between items-center bg-white p-4 rounded-3xl border-2 border-slate-100 shadow-sm">
+        <div className="flex justify-between items-center pixel-panel p-4 shadow-xl">
           <div className="flex items-center gap-3">
-             <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center text-white">🏪</div>
-             <h1 className="text-xl font-black text-slate-800">Terminal Kantin</h1>
+             <div className="w-12 h-12 bg-black/5 border-2 border-black/10 flex items-center justify-center text-slate-800 shadow-lg p-2">🏪</div>
+             <h1 className="text-sm pixel-font-header text-slate-800">Merchant Gild Hub</h1>
           </div>
           <button 
             onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 text-slate-400 hover:text-red-500 font-bold transition-all"
+            className="pixel-button-red"
           >
-            <LogOut size={18} /> Keluar
+            OFF
           </button>
         </div>
 
         {/* Search Bar */}
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-slate-400">
+          <div className="absolute inset-y-0 left-0 pl-8 flex items-center pointer-events-none text-slate-400">
             <Search size={24} />
           </div>
           <input 
@@ -118,14 +121,14 @@ const KantinDashboard: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && searchStudents()}
-            className="w-full pl-16 pr-6 py-6 bg-white border-2 border-slate-100 rounded-[2.5rem] shadow-sm focus:outline-none focus:border-amber-400 focus:shadow-lg focus:shadow-amber-100/50 transition-all text-xl font-bold text-slate-700"
-            placeholder="Cari Nama Siswa..."
+            className="w-full pl-20 pr-32 py-6 pixel-panel text-slate-900 focus:outline-none transition-all text-xl font-bold placeholder:text-slate-300 pixel-font-body"
+            placeholder="Pindai / Cari Nama Petualang..."
           />
           <button 
             onClick={searchStudents}
-            className="absolute right-4 top-1/2 -translate-y-1/2 px-6 py-3 bg-amber-400 hover:bg-amber-500 text-white rounded-2xl font-black shadow-sm transition-all"
+            className="absolute right-4 top-1/2 -translate-y-1/2 pixel-button-green"
           >
-            Cari
+            CARI
           </button>
         </div>
 
@@ -133,7 +136,7 @@ const KantinDashboard: React.FC = () => {
         <div className="grid gap-4">
           {loading ? (
             <div className="flex justify-center py-12">
-              <Loader2 className="animate-spin text-amber-400" size={48} />
+              <Loader2 className="animate-spin text-blue-400" size={48} />
             </div>
           ) : students.length > 0 ? (
             students.map((student) => (
@@ -142,10 +145,10 @@ const KantinDashboard: React.FC = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 onClick={() => setSelectedStudent(student)}
-                className="bg-white p-6 rounded-[2rem] border-2 border-slate-100 hover:border-amber-200 cursor-pointer transition-all flex items-center justify-between group"
+                className="pixel-panel p-6 hover:scale-[1.01] cursor-pointer transition-all flex items-center justify-between group"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-slate-50 rounded-2xl overflow-hidden p-1 border-2 border-slate-100">
+                <div className="flex items-center gap-6">
+                  <div className="w-16 h-16 bg-white border-2 border-slate-100 rounded-2xl overflow-hidden p-1 shadow-sm">
                     <img 
                       src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${student.full_name}`} 
                       alt="Avatar" 
@@ -153,11 +156,11 @@ const KantinDashboard: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <h3 className="text-xl font-black text-slate-800">{student.full_name}</h3>
-                    <p className="text-sm font-bold text-slate-400">Kelas {student.class} • {student.coins} Koin</p>
+                    <h3 className="font-bold text-slate-900 text-lg leading-tight mb-1 pixel-font-body">{student.full_name}</h3>
+                    <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest pixel-font-body">LVL {student.class} • {student.coins} GP</p>
                   </div>
                 </div>
-                <div className="text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="text-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity">
                   <CheckCircle2 size={32} />
                 </div>
               </motion.div>
@@ -206,25 +209,32 @@ const KantinDashboard: React.FC = () => {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="relative bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl overflow-hidden"
+                className="relative pixel-panel w-full max-w-md p-10 shadow-2xl overflow-hidden"
               >
                 <button 
                   onClick={() => setSelectedStudent(null)}
-                  className="absolute top-6 right-6 text-slate-400 hover:text-slate-600"
+                  className="absolute top-6 right-6 p-2 bg-slate-100 text-slate-400 hover:text-slate-600"
                 >
-                  <X size={24} />
+                  <X size={20} />
                 </button>
 
                 <div className="flex flex-col items-center text-center">
-                  <div className="w-24 h-24 bg-blue-50 rounded-3xl p-2 mb-4 border-2 border-blue-100">
+                  <h1 className="text-sm pixel-font-header text-slate-800 mb-3">
+                    Merchant <span className="text-amber-600">Exchange</span>
+                  </h1>
+                  <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px] pixel-font-body mb-8">
+                    OTORISASI TRANSAKSI PETUALANG
+                  </p>
+                  
+                  <div className="w-24 h-24 bg-white rounded-2xl p-2 mb-4 border-4 border-slate-100 shadow-md">
                     <img 
                       src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${selectedStudent.full_name}`} 
                       alt="Avatar" 
                     />
                   </div>
-                  <h2 className="text-2xl font-black text-slate-800">{selectedStudent.full_name}</h2>
-                  <div className="inline-flex items-center gap-2 px-4 py-1 bg-amber-50 text-amber-600 rounded-full text-sm font-black mt-2">
-                    <Coins size={16} /> {selectedStudent.coins} Koin Tersedia
+                  <h2 className="text-lg font-bold text-slate-900 pixel-font-body">{selectedStudent.full_name}</h2>
+                  <div className="inline-flex items-center gap-2 px-4 py-1 bg-amber-50 text-amber-600 border border-amber-100 text-sm font-bold mt-2 pixel-font-body">
+                    <Coins size={16} /> {selectedStudent.coins} GP Tersedia
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full mt-8">
@@ -242,22 +252,22 @@ const KantinDashboard: React.FC = () => {
                         key={item.name}
                         onClick={() => item.stock > 0 && handleTransaction(selectedStudent.id, item.price, item.name)}
                         disabled={processing || selectedStudent.coins < item.price || item.stock === 0}
-                        className={`group p-3 bg-slate-50 rounded-2xl border-2 transition-all flex flex-col items-center text-center ${
+                        className={`group p-3 bg-white border-2 transition-all flex flex-col items-center text-center ${
                           item.stock > 0 
-                            ? 'border-transparent hover:border-amber-400 hover:bg-white hover:shadow-xl' 
+                            ? 'border-slate-100 hover:border-amber-400 hover:shadow-lg' 
                             : 'opacity-50 grayscale cursor-not-allowed'
                         }`}
                       >
-                        <div className="w-full aspect-square bg-white rounded-xl mb-2 p-3 overflow-hidden flex items-center justify-center">
+                        <div className="w-full aspect-square bg-slate-50 border border-slate-100 rounded-xl mb-2 p-3 overflow-hidden flex items-center justify-center">
                           <img src={item.image} alt={item.name} className="w-full h-full object-contain group-hover:scale-110 transition-transform" />
                         </div>
-                        <p className="text-[10px] font-black text-slate-800 leading-tight mb-1 line-clamp-1">{item.name}</p>
+                        <p className="text-[10px] font-bold text-slate-800 leading-tight mb-1 line-clamp-1 pixel-font-header">{item.name}</p>
                         <div className="flex items-center gap-1 mb-2">
                           <Coins size={10} className="text-amber-500" />
-                          <span className="text-xs font-black text-amber-600">{item.price}</span>
+                          <span className="text-xs font-bold text-amber-600 pixel-font-body">{item.price} GP</span>
                         </div>
-                        <div className="w-full pt-1.5 border-t border-slate-100 flex items-center justify-between">
-                          <span className={`text-[8px] font-black uppercase ${item.stock > 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        <div className="w-full pt-1.5 border-t border-slate-100 flex items-center justify-between pixel-font-body">
+                          <span className={`text-[8px] font-bold uppercase ${item.stock > 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
                             {item.stock > 0 ? 'Ready' : 'Habis'}
                           </span>
                           <span className="text-[8px] font-bold text-slate-400">{item.stock}</span>

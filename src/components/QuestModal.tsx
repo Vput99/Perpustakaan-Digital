@@ -234,49 +234,46 @@ export default function QuestModal({ onClose, quest }: QuestModalProps) {
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       exit={{ scale: 0.9, opacity: 0 }}
-      className="relative w-full max-w-lg bg-white rounded-[3rem] p-1 shadow-2xl overflow-hidden"
+      className="relative w-full max-w-lg pixel-panel p-10 shadow-2xl overflow-hidden"
     >
-      <div className="bg-slate-50 p-8 rounded-[3rem]">
-        <div className="flex justify-between items-start mb-8">
-          <div className="w-20 h-20 bg-emerald-100 rounded-3xl flex items-center justify-center text-5xl shadow-lg border-4 border-white">
-            {quest.icon || '🛍️'}
-          </div>
-          <button onClick={onClose} className="p-3 bg-white shadow-sm rounded-2xl text-slate-400 hover:text-slate-600 transition-all"><X size={20} /></button>
+      <div className="flex justify-between items-start mb-8">
+        <div className="w-20 h-20 bg-emerald-100 border-4 border-white rounded-2xl flex items-center justify-center text-5xl shadow-lg">
+          {quest.icon || '🛍️'}
+        </div>
+        <button onClick={onClose} className="p-2 bg-slate-100 text-slate-400 hover:text-slate-600"><X size={20} /></button>
+      </div>
+
+      <div className="bg-black/5 rounded-2xl p-8 border-2 border-dashed border-black/10 relative overflow-hidden">
+        <div className="text-center mb-8">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 pixel-font-body">STRUK PEMBELIAN GILD</p>
+          <h3 className="text-sm pixel-font-header text-slate-800">{quest.name}</h3>
         </div>
 
-        <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1.5 bg-emerald-500" />
-          <div className="text-center mb-8">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Struk Pembelian Digital</p>
-            <h3 className="text-2xl font-black text-slate-800">{quest.name}</h3>
+        <div className="space-y-4 mb-8 pixel-font-body">
+          <div className="flex justify-between items-center">
+            <span className="text-[10px] font-bold text-slate-400 uppercase">Harga</span>
+            <div className="flex items-center gap-2 font-bold text-slate-800">
+              <Coins size={14} className="text-amber-500" />
+              {quest.price} GP
+            </div>
           </div>
+          <div className="flex justify-between items-center">
+            <span className="text-[10px] font-bold text-slate-400 uppercase">Pembeli</span>
+            <span className="font-bold text-slate-800">{profile?.full_name?.split(' ')[0]}</span>
+          </div>
+          <div className="pt-4 border-t-2 border-dashed border-black/10 flex justify-between items-center">
+            <span className="font-bold text-slate-800">Total Tagihan</span>
+            <span className="text-lg font-bold text-emerald-600">{quest.price} GP</span>
+          </div>
+        </div>
 
-          <div className="space-y-4 mb-8">
-            <div className="flex justify-between items-center">
-              <span className="text-xs font-bold text-slate-400 uppercase">Harga</span>
-              <div className="flex items-center gap-2 font-black text-slate-800">
-                <Coins size={14} className="text-amber-500" />
-                {quest.price} Koin
-              </div>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs font-bold text-slate-400 uppercase">Pembeli</span>
-              <span className="font-black text-slate-800">{profile?.full_name?.split(' ')[0]}</span>
-            </div>
-            <div className="pt-4 border-t-2 border-dashed border-slate-100 flex justify-between items-center">
-              <span className="font-black text-slate-800">Total Tagihan</span>
-              <span className="text-2xl font-black text-emerald-600">{quest.price} 🪙</span>
-            </div>
+        {/* Verification Code Box */}
+        <div className="bg-slate-900 rounded-2xl p-6 mb-8 text-center relative overflow-hidden group">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 pixel-font-body">KODE VERIFIKASI PETUGAS</p>
+          <div className="text-3xl font-bold text-white tracking-[0.2em] group-hover:scale-110 transition-transform duration-500 pixel-font-header">
+            {verificationCode}
           </div>
-
-          {/* Verification Code Box */}
-          <div className="bg-slate-900 rounded-3xl p-6 mb-8 text-center relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 blur-2xl rounded-full -mr-10 -mt-10" />
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Kode Verifikasi Petugas</p>
-            <div className="text-4xl font-black text-white tracking-[0.2em] group-hover:scale-110 transition-transform duration-500">
-              {verificationCode}
-            </div>
-          </div>
+        </div>
 
           <div className="bg-amber-50 rounded-2xl p-4 mb-8 border border-amber-100 text-center">
             <p className="text-[9px] font-black text-amber-600 uppercase mb-1">Penting!</p>
@@ -285,25 +282,24 @@ export default function QuestModal({ onClose, quest }: QuestModalProps) {
             </p>
           </div>
 
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleShopPurchase}
-            disabled={loadingBook || coinsAwarded}
-            className={`w-full h-16 rounded-[1.5rem] font-black text-sm uppercase tracking-widest transition-all shadow-xl ${
-              coinsAwarded 
-              ? 'bg-emerald-500 text-white shadow-emerald-200'
-              : 'bg-slate-900 text-white shadow-slate-200 hover:bg-black'
-            }`}
-          >
-            {loadingBook ? 'Memproses...' : (coinsAwarded ? 'Berhasil Ditukar! ✅' : 'Tukar Sekarang')}
-          </motion.button>
-        </div>
-        
-        <button onClick={onClose} className="w-full py-6 text-[10px] font-black text-slate-300 hover:text-slate-500 uppercase tracking-widest transition-colors">
-          Batal dan Kembali
-        </button>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={handleShopPurchase}
+          disabled={loadingBook || coinsAwarded}
+          className={`w-full h-16 transition-all ${
+            coinsAwarded 
+            ? 'pixel-button-green'
+            : 'pixel-button-blue'
+          }`}
+        >
+          {loadingBook ? 'PROSES...' : (coinsAwarded ? 'BERHASIL! ✅' : 'TUKAR GP')}
+        </motion.button>
       </div>
+      
+      <button onClick={onClose} className="w-full mt-6 text-[10px] font-bold text-slate-300 hover:text-slate-500 uppercase tracking-widest transition-colors pixel-font-body">
+        BATAL DAN KEMBALI
+      </button>
     </motion.div>
   );
 
@@ -328,38 +324,37 @@ export default function QuestModal({ onClose, quest }: QuestModalProps) {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="relative w-full max-w-lg bg-white rounded-[2rem] p-8 shadow-2xl overflow-hidden"
+            className="relative w-full max-w-lg pixel-panel p-10 shadow-2xl overflow-hidden"
           >
-            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-400 to-purple-400" />
-            <button onClick={onClose} className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600"><X /></button>
+            <button onClick={onClose} className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-600"><X /></button>
             
-            <div className="text-center mb-8">
-              <div className="inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-blue-100 text-blue-600 mb-6">
+            <div className="text-center mb-10">
+              <div className="inline-flex h-20 w-20 items-center justify-center bg-blue-100 border-4 border-white rounded-2xl text-blue-600 mb-6 shadow-md">
                 {quest?.isTest ? <span className="text-4xl">📝</span> : (quest?.icon ? <span className="text-4xl">{quest.icon}</span> : <Trophy size={40} />)}
               </div>
-              <h2 className="text-3xl font-black text-slate-800 mb-2">{quest?.isTest ? 'Ulangan Harian' : (quest?.title || 'Misi Literasi!')}</h2>
-              <p className="text-slate-500 font-medium">
+              <h2 className="text-sm pixel-font-header text-slate-800 mb-2">{quest?.isTest ? 'Ulangan Harian' : (quest?.title || 'Misi Literasi!')}</h2>
+              <p className="text-[10px] font-bold text-slate-500 pixel-font-body">
                 {quest?.isTest ? `Mata Pelajaran: ${quest.book_title}` : (quest?.book_title ? `Tugas: Baca buku "${quest.book_title}"` : 'Selesaikan tantangan ini untuk mendapatkan koin.')}
               </p>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
-                 <label className="block text-sm font-black text-slate-700 uppercase tracking-widest mb-2">Siapa Namamu?</label>
+                 <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-widest mb-3 pixel-font-body">Siapa Namamu, Petualang?</label>
                  <input 
                    type="text" 
                    value={studentName}
                    onChange={(e) => setStudentName(e.target.value)}
-                   placeholder="Tulis nama lengkapmu di sini..." 
-                   className="w-full h-14 bg-slate-50 rounded-2xl px-6 border-2 border-slate-100 focus:border-blue-400 focus:outline-none font-bold text-slate-800"
+                   placeholder="Tulis namamu..." 
+                   className="w-full h-14 bg-black/5 rounded-2xl px-6 border-2 border-transparent focus:border-blue-400 focus:outline-none font-bold text-slate-800 pixel-font-body"
                  />
               </div>
               <button 
                 onClick={quest?.isTest ? startQuiz : (bookData ? startReading : startQuiz)}
                 disabled={loadingBook}
-                className="w-full h-14 bg-blue-600 rounded-2xl text-white font-black text-lg shadow-lg shadow-blue-100 hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center gap-2"
+                className={`w-full h-16 transition-all ${loadingBook ? 'opacity-50' : 'pixel-button-green'}`}
               >
-                {loadingBook ? 'Menyiapkan...' : (bookData ? 'Mulai Membaca' : 'Mulai Kerjakan')} <ChevronRight />
+                {loadingBook ? 'MENYIAPKAN...' : (bookData ? 'MULAI BACA' : 'MULAI KERJAKAN')}
               </button>
             </div>
           </motion.div>
@@ -379,19 +374,19 @@ export default function QuestModal({ onClose, quest }: QuestModalProps) {
             initial={{ x: 50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -50, opacity: 0 }}
-            className="relative w-full max-w-xl bg-white rounded-[2rem] p-10 shadow-2xl"
+            className="relative w-full max-w-xl pixel-panel p-10 shadow-2xl"
           >
-            <div className="mb-6">
-               <h4 className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">
-                 {quest?.isTest ? `Ulangan: ${quest.book_title}` : (quest?.title || 'Tantangan Literasi')}
+            <div className="mb-10">
+               <h4 className="text-[10px] pixel-font-header text-blue-600 mb-4">
+                 {quest?.isTest ? `ULANGAN: ${quest.book_title}` : (quest?.title || 'TANTANGAN LITERASI')}
                </h4>
                <div className="flex justify-between items-center">
-                  <span className="bg-slate-100 px-4 py-1.5 rounded-full text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                     Pertanyaan {currentQuestion + 1} dari {activeQuestions.length}
+                  <span className="bg-black/5 px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest pixel-font-body">
+                     HALAMAN {currentQuestion + 1} / {activeQuestions.length}
                   </span>
-                  <div className="h-2 w-32 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-4 w-32 bg-black/10 p-1 border-2 border-black/5">
                      <div 
-                       className="h-full bg-blue-500 transition-all duration-500" 
+                       className="h-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)] transition-all duration-500" 
                        style={{ width: `${((currentQuestion + 1) / activeQuestions.length) * 100}%` }} 
                      />
                   </div>
@@ -400,11 +395,11 @@ export default function QuestModal({ onClose, quest }: QuestModalProps) {
 
             <MathText 
               text={activeQuestions[currentQuestion].question}
-              className="text-2xl font-black text-slate-800 mb-8 leading-tight"
+              className="text-lg pixel-font-header text-slate-800 mb-10 leading-relaxed"
             />
 
             {activeQuestions[currentQuestion].image && (
-              <div className="mb-8 rounded-2xl overflow-hidden border-2 border-slate-100">
+              <div className="mb-10 rounded-2xl overflow-hidden border-4 border-slate-100 shadow-md">
                 <img 
                   src={activeQuestions[currentQuestion].image} 
                   alt="Question" 
@@ -413,7 +408,7 @@ export default function QuestModal({ onClose, quest }: QuestModalProps) {
               </div>
             )}
 
-            <div className={`grid gap-4 ${activeQuestions[currentQuestion].options.some((o: any) => typeof o === 'object' || (typeof o === 'string' && o.startsWith('http'))) ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            <div className={`grid gap-5 ${activeQuestions[currentQuestion].options.some((o: any) => typeof o === 'object' || (typeof o === 'string' && o.startsWith('http'))) ? 'grid-cols-2' : 'grid-cols-1'}`}>
               {activeQuestions[currentQuestion].options.map((option: any, idx: number) => {
                 const isImageOption = typeof option === 'object' ? !!option.image : (typeof option === 'string' && option.startsWith('http'));
                 const optionText = typeof option === 'object' ? option.text : (isImageOption ? '' : option);
@@ -423,12 +418,12 @@ export default function QuestModal({ onClose, quest }: QuestModalProps) {
                   <button
                     key={idx}
                     onClick={() => handleAnswer(idx)}
-                    className={`w-full p-6 text-left rounded-2xl border-2 border-slate-100 hover:border-blue-400 hover:bg-blue-50 font-bold text-slate-700 transition-all active:scale-98 flex flex-col items-center gap-3`}
+                    className="w-full p-6 text-left bg-white border-2 border-slate-100 hover:border-blue-400 hover:bg-blue-50 font-bold text-slate-700 transition-all active:scale-[0.98] flex flex-col items-center gap-4 pixel-font-body"
                   >
                     {optionImg && (
                       <img src={optionImg} alt={`Option ${idx}`} className="w-full h-32 object-contain rounded-lg" />
                     )}
-                    {optionText && <MathText text={optionText} className="w-full" />}
+                    {optionText && <MathText text={optionText} className="w-full text-sm" />}
                   </button>
                 );
               })}
@@ -439,47 +434,48 @@ export default function QuestModal({ onClose, quest }: QuestModalProps) {
         {step === 'result' && (
           <motion.div 
             key="result"
-            className="relative w-full max-w-lg bg-white rounded-[2rem] p-10 shadow-2xl text-center"
+            className="relative w-full max-w-lg pixel-panel p-12 shadow-2xl text-center"
           >
-            <div className={`inline-flex h-24 w-24 items-center justify-center rounded-3xl mb-8 ${score >= 75 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+            <div className={`inline-flex h-24 w-24 items-center justify-center rounded-2xl mb-8 border-4 border-white shadow-lg ${score >= 75 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
                {score >= 75 ? <Award size={56} /> : <X size={56} />}
             </div>
             
-            <h2 className="text-3xl font-black text-slate-800 mb-4">
-              {score >= 75 ? 'Misi Selesai!' : 'Coba Lagi!'}
+            <h2 className="text-sm pixel-font-header text-slate-800 mb-6">
+              {score >= 75 ? 'MISI SELESAI!' : 'COBA LAGI!'}
             </h2>
-            <p className="text-slate-500 mb-8 font-medium">
-              Nilai kamu: <span className="font-black text-slate-800">{Math.round(score)}</span>. 
-              {score >= 75 ? `Kamu telah menyelesaikan "${quest?.title}".` : `Maaf, kamu butuh nilai minimal 75 untuk lulus. Ayo belajar lagi!`}
+            <p className="text-[10px] font-bold text-slate-500 mb-10 pixel-font-body leading-relaxed">
+              SKOR KAMU: <span className="text-slate-800 text-lg">{Math.round(score)}</span>. 
+              <br />
+              {score >= 75 ? `Selamat! Kamu telah menyelesaikan misi "${quest?.title}".` : `Maaf, kamu butuh skor minimal 75 untuk lulus. Ayo belajar lagi!`}
             </p>
 
-            {/* Coin Reward Banner */}
+            {/* GP Reward Banner */}
             {coinsAwarded && score >= 75 && (
               <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.3, type: "spring" }}
-                className="mb-8 bg-gradient-to-r from-amber-400 to-yellow-400 rounded-2xl p-4 flex items-center justify-center gap-3 shadow-lg shadow-amber-200/50"
+                className="mb-10 pixel-panel-blue p-4 flex items-center justify-center gap-3 shadow-lg"
               >
                 <motion.div
                   animate={{ rotateY: [0, 360] }}
                   transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                 >
-                  <Coins size={24} className="text-amber-800" />
+                  <Coins size={24} className="text-amber-400" />
                 </motion.div>
-                <span className="font-black text-amber-900">
-                  +{quest?.reward || 10} Koin Berhasil Didapat! 🎉
+                <span className="font-bold text-white pixel-font-body text-[10px]">
+                  +{quest?.reward || 10} GP BERHASIL DIDAPAT! 🎉
                 </span>
               </motion.div>
             )}
 
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-4">
               {score >= 75 ? (
                 <button 
                   onClick={quest?.isTest ? () => setStep('certificate') : onClose}
-                  className="w-full h-14 bg-blue-600 rounded-2xl text-white font-black text-lg shadow-lg hover:bg-blue-700 active:scale-95 transition-all"
+                  className="pixel-button-green w-full h-14"
                 >
-                  {quest?.isTest ? 'Lihat Sertifikat' : 'Kembali ke Dashboard'}
+                  {quest?.isTest ? 'LIHAT SERTIFIKAT' : 'KEMBALI'}
                 </button>
               ) : (
                 <button 
@@ -488,16 +484,16 @@ export default function QuestModal({ onClose, quest }: QuestModalProps) {
                     setCurrentQuestion(0);
                     setAnswers([]);
                   }}
-                  className="w-full h-14 bg-orange-500 rounded-2xl text-white font-black text-lg shadow-lg hover:bg-orange-600 active:scale-95 transition-all"
+                  className="pixel-button-blue w-full h-14"
                 >
-                  Ulangi Ulangan
+                  ULANGI MISI
                 </button>
               )}
               <button 
                 onClick={onClose}
-                className="w-full h-14 bg-slate-100 rounded-2xl text-slate-500 font-black text-lg hover:bg-slate-200 active:scale-95 transition-all"
+                className="w-full py-4 text-[10px] font-bold text-slate-300 hover:text-slate-500 uppercase tracking-widest transition-colors pixel-font-body"
               >
-                Tutup
+                TUTUP
               </button>
             </div>
           </motion.div>
@@ -566,7 +562,7 @@ export default function QuestModal({ onClose, quest }: QuestModalProps) {
               <motion.div
                 initial={{ scale: 0, rotate: -20 }}
                 animate={{ scale: 1, rotate: 0 }}
-                className="bg-gradient-to-br from-amber-400 via-yellow-300 to-amber-500 p-8 rounded-[3rem] shadow-[0_20px_50px_rgba(180,83,9,0.4)] border-4 border-white/50 text-center relative z-10"
+                className="pixel-panel p-8 shadow-2xl text-center relative z-10"
               >
                 <div className="absolute -top-10 left-1/2 -translate-x-1/2 flex gap-2">
                    {[...Array(3)].map((_, i) => (
@@ -574,26 +570,26 @@ export default function QuestModal({ onClose, quest }: QuestModalProps) {
                        key={i}
                        animate={{ y: [0, -10, 0], scale: [1, 1.2, 1] }}
                        transition={{ duration: 1, delay: i * 0.2, repeat: Infinity }}
-                       className="text-white drop-shadow-lg"
+                       className="text-amber-400 drop-shadow-lg"
                      >
-                       <Star fill="white" size={32} />
+                       <Star fill="#fbbf24" size={32} />
                      </motion.div>
                    ))}
                 </div>
                 
-                <h4 className="text-amber-900 font-black text-xl uppercase tracking-tighter mb-1">
+                <h4 className="text-sm pixel-font-header text-slate-800 mb-4">
                   {quest?.isShop ? 'PEMBELIAN BERHASIL!' : 'MISI BERHASIL!'}
                 </h4>
-                <div className="flex items-center justify-center gap-4 my-2">
-                   <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-inner text-4xl">
+                <div className="flex items-center justify-center gap-4 my-4">
+                   <div className="w-16 h-16 bg-white border-2 border-slate-100 rounded-2xl flex items-center justify-center shadow-inner text-4xl">
                       {quest?.isShop ? (quest?.icon || '🛍️') : <Coins size={36} className="text-amber-500 animate-bounce" />}
                    </div>
-                   <span className="text-6xl font-black text-amber-950 drop-shadow-md">
+                   <span className="text-4xl pixel-font-header text-amber-600 drop-shadow-md">
                      {quest?.isShop ? '' : '+'} {quest?.isShop ? '' : (quest?.reward || 10)}
                    </span>
                 </div>
-                <p className="text-amber-800 font-black text-lg">
-                  {quest?.isShop ? quest?.name : 'KOIN BARU DIPEROLEH!'}
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pixel-font-body">
+                  {quest?.isShop ? quest?.name : 'GOLD POINTS DIPEROLEH!'}
                 </p>
               </motion.div>
             </div>
